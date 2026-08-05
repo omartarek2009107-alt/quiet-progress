@@ -23,10 +23,15 @@ module.exports = {
       /^\/out($|\/)/,
       /^\/\.git($|\/)/,
       /^\/\.vscode($|\/)/,
+      // A separate Electron project living in the same folder. Without this
+      // its source AND its node_modules get packaged, which took app.asar
+      // from 0.4 MB to 850 MB and the installer from 134 MB to 440 MB.
+      /^\/NetMonitor($|\/)/,
       /\.ps1$/,
       /^\/README/,
       /^\/forge\.config\.js$/,
-      /^\/assets\/make-icon\.js$/   // build-time only; the .ico is what ships
+      /^\/assets\/make-icon\.js$/,  // build-time only; the .ico is what ships
+      /^\/devserver\.js$/           // local test server for the web build
     ]
   },
 

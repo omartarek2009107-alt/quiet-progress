@@ -1,5 +1,10 @@
 <title>Quiet Progress — Habit &amp; Study Tracker</title>
 
+<!-- Lemon Squeezy overlay checkout. Loads in the desktop and local builds;
+     the published artifact blocks external hosts by policy, in which case the
+     Upgrade button falls back to opening the checkout in a normal tab. -->
+<script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+
 <style>
 /* ─────────────────────────────  TOKENS  ───────────────────────────── */
 :root,
@@ -207,7 +212,7 @@ button{ background:none; border:none; cursor:pointer; }
 .bar-fill{
   height:100%; border-radius:99px;
   background:linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow:0 0 14px color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow:0 0 11px color-mix(in srgb, var(--accent) 36%, transparent);
   transition:width .45s cubic-bezier(.22,1,.36,1);
 }
 
@@ -287,7 +292,7 @@ td.day.is-future .box{ opacity:.42; }
 .box:hover{ border-color:var(--wk); transform:scale(1.14); }
 .box:active{ transform:scale(.94); }
 .box svg{ opacity:0; color:#06111b; transition:opacity .12s; }
-.box.on{ background:var(--wk); border-color:var(--wk); box-shadow:0 0 11px -1px var(--wk-glow); }
+.box.on{ background:var(--wk); border-color:var(--wk); box-shadow:0 0 9px -1px var(--wk-glow); }
 .box.on svg{ opacity:1; }
 
 .rate-cell{
@@ -349,7 +354,7 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
 .abar-track{ height:15px; border-radius:4px; background:#0c1424; border:1px solid var(--line-soft); overflow:hidden; }
 .abar-fill{
   height:100%; border-radius:3px; background:var(--c);
-  box-shadow:0 0 12px -3px var(--c);
+  box-shadow:0 0 10px -4px var(--c);
   transition:width .5s cubic-bezier(.22,1,.36,1);
 }
 .abar-val{ font-family:var(--font-num); font-size:12px; text-align:right; color:var(--c); }
@@ -387,7 +392,7 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   background:linear-gradient(140deg,
     color-mix(in srgb, var(--accent) 26%, transparent),
     color-mix(in srgb, var(--accent-2) 26%, transparent));
-  box-shadow:0 0 18px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow:0 0 14px -7px color-mix(in srgb, var(--accent) 48%, transparent);
 }
 
 .ring-card{ display:flex; align-items:center; gap:22px; padding:4px 22px 22px; }
@@ -582,6 +587,235 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
 }
 .cd-empty b{ color:var(--text); font-size:15px; font-weight:600; }
 
+/* ────────────────────────  HOME DASHBOARD  ─────────────────────── */
+.hero{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  margin-bottom:16px; padding:20px 22px; border-radius:16px;
+  background:linear-gradient(140deg, color-mix(in srgb, var(--accent) 7%, var(--panel)), var(--panel));
+  border:1px solid var(--line);
+}
+.hero-text{ flex:1; min-width:220px; }
+.hero-text h2{ margin:0; font-size:23px; font-weight:650; letter-spacing:-.02em; color:var(--text); }
+.hero-text p{ margin:5px 0 0; font-size:14px; color:var(--text-dim); }
+.hero-cta{ flex:none; padding:12px 20px; font-size:14px; }
+
+/* Softened: a navy card with a warm edge rather than an orange slab. */
+.milestone{
+  display:flex; align-items:center; gap:14px; margin-bottom:14px;
+  padding:14px 18px; border-radius:14px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-left:3px solid color-mix(in srgb,#fbbf24 55%, transparent);
+}
+.milestone b{ display:block; font-size:15px; color:color-mix(in srgb,#fbbf24 78%, var(--text)); }
+.milestone span{ display:block; font-size:12.5px; color:var(--text-dim); margin-top:2px; }
+.milestone > div{ flex:1; min-width:0; }
+
+.insight{
+  display:flex; align-items:flex-start; gap:11px; margin-bottom:16px;
+  padding:13px 16px; border-radius:12px;
+  background:var(--panel); border:1px solid var(--line);
+}
+.insight p{ margin:0; font-size:13.5px; line-height:1.5; color:var(--text); }
+.insight svg{ flex:none; margin-top:1px; }
+.insight.good svg{ color:var(--teal); }
+.insight.warn svg{ color:var(--amber); }
+.insight.calm svg{ color:var(--cyan); }
+.insight.good{ border-color:color-mix(in srgb, var(--teal) 30%, transparent); }
+.insight.warn{ border-color:color-mix(in srgb, var(--amber) 34%, transparent); }
+
+.home-grid{
+  display:grid; gap:14px;
+  grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+  align-items:start;
+}
+.h-card{ padding:17px 19px 19px; display:flex; flex-direction:column; gap:11px; }
+.h-next{ grid-column:span 2; }
+.h-wide{ grid-column:1 / -1; }
+
+.h-head{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.h-head svg{ color:var(--accent); }
+
+.h-next-top h3{ margin:5px 0 0; font-size:22px; font-weight:650; letter-spacing:-.02em; color:var(--text); }
+.h-when{ font-size:12.5px; color:var(--text-dim); margin-top:4px; }
+.h-blocks{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:auto; }
+.h-blocks > div{
+  background:var(--ground-2); border:1px solid var(--line-soft);
+  border-radius:12px; padding:12px 6px 10px; text-align:center;
+}
+.h-blocks b{ display:block; font-size:27px; font-weight:700; color:var(--accent); line-height:1; }
+.h-blocks span{ display:block; margin-top:5px; font-size:11.5px; color:var(--text-faint); }
+
+.h-row{ display:flex; align-items:center; gap:16px; }
+.mini-ring{ position:relative; width:76px; height:76px; flex:none; }
+.mini-ring-mid{ position:absolute; inset:0; display:grid; place-content:center; text-align:center; }
+.mini-ring-mid b{ font-size:15px; color:var(--text); }
+.mini-ring-mid span{ display:block; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); }
+.h-side{ flex:1; min-width:0; display:flex; flex-direction:column; gap:7px; align-items:flex-start; }
+.h-list{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:3px; }
+.h-list li{ font-size:12.5px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.h-more{ font-size:11.5px; color:var(--text-faint); }
+.h-good{ margin:0; font-size:13px; color:var(--teal); }
+
+.h-big{ font-size:38px; font-weight:700; line-height:1; letter-spacing:-.02em; color:var(--text); }
+.h-big small{ font-size:15px; font-weight:500; color:var(--text-faint); margin-left:6px; }
+.h-big.hot{ color:#fb923c; }
+.h-note{ margin:0; font-size:11.5px; color:var(--text-faint); line-height:1.45; }
+.h-sub{ font-size:12px; color:var(--text-dim); }
+.h-card .minibtn{ align-self:flex-start; margin-top:auto; }
+
+.h-progress{ display:flex; align-items:center; gap:12px; }
+.h-progress .bar-track{ flex:1; height:10px; }
+.h-progress > .num{ font-size:17px; font-weight:650; color:var(--accent); }
+.h-exams{ display:flex; flex-direction:column; gap:7px; margin-top:4px; }
+.h-exam{ display:grid; grid-template-columns:minmax(90px,180px) 1fr 44px; align-items:center; gap:11px; }
+.h-exam-name{ font-size:12.5px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.h-exam .bar-track{ height:7px; }
+.h-exam-fill{ display:block; height:100%; border-radius:99px; background:var(--c); }
+.h-exam .num{ font-size:11.5px; text-align:right; color:var(--text-dim); }
+
+.h-empty{
+  display:grid; place-items:center; gap:7px; text-align:center;
+  padding:26px 14px; color:var(--text-faint);
+}
+.h-empty.small{ padding:18px 12px; }
+.h-empty b{ color:var(--text); font-size:14px; }
+.h-empty span{ font-size:12px; max-width:280px; }
+
+.h-focus .focus-kind{
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--accent);
+}
+.focus-title{ font-size:17px; font-weight:650; letter-spacing:-.01em; color:var(--text); line-height:1.25; }
+
+.forecast{ display:flex; align-items:flex-start; gap:9px; }
+.forecast p{ margin:0; font-size:13px; line-height:1.5; color:var(--text); }
+.forecast svg{ flex:none; margin-top:2px; color:var(--cyan); }
+.forecast.good svg{ color:var(--teal); }
+.forecast.warn svg{ color:var(--amber); }
+
+.day-chart{ display:flex; align-items:flex-end; gap:6px; height:96px; }
+.d-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end; }
+.d-bar{
+  width:100%; max-width:26px; border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 45%, transparent));
+}
+.d-col span{ font-family:var(--font-num); font-size:9.5px; color:var(--text-faint); }
+
+.earned{ display:flex; flex-wrap:wrap; gap:6px; }
+.earned span{
+  font-size:11.5px; padding:5px 10px; border-radius:99px;
+  color:color-mix(in srgb,#fbbf24 80%, var(--text));
+  background:color-mix(in srgb,#fbbf24 9%, transparent);
+  border:1px solid color-mix(in srgb,#fbbf24 28%, transparent);
+}
+
+.activity{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+.activity li{ display:flex; align-items:baseline; gap:10px; font-size:12.5px; }
+.activity b{ font-family:var(--font-num); font-size:11px; color:var(--text-dim); min-width:52px; }
+.activity span{ color:var(--text-faint); }
+
+.limit-note{
+  display:flex; align-items:center; gap:9px; margin-bottom:14px;
+  padding:11px 14px; border-radius:11px; font-size:12.5px; color:var(--text-dim);
+  background:var(--panel); border:1px solid var(--line);
+}
+.limit-note svg{ color:#fbbf24; flex:none; }
+.linkish{
+  color:#fbbf24; text-decoration:underline; text-underline-offset:2px;
+  font-size:inherit; padding:0;
+}
+
+/* Starter packs */
+.ob-modal{ width:min(520px, calc(100% - 32px)); }
+.ob-modal .body{ display:flex; flex-direction:column; gap:14px; padding:4px 20px 20px; }
+.ob-packs{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ob-pack{
+  display:flex; flex-direction:column; gap:4px; align-items:flex-start; text-align:left;
+  padding:14px 15px; border-radius:12px;
+  background:var(--ground-2); border:1px solid var(--line);
+  transition:border-color .15s, background .15s, transform .12s;
+}
+.ob-pack:hover{ border-color:color-mix(in srgb, var(--accent) 45%, transparent); background:var(--panel-2); transform:translateY(-1px); }
+.ob-pack b{ font-size:13.5px; color:var(--text); }
+.ob-pack span{ font-size:11.5px; color:var(--text-faint); }
+.ob-pack em{ font-style:normal; font-size:15px; letter-spacing:2px; margin-top:3px; }
+@media (max-width:520px){ .ob-packs{ grid-template-columns:1fr; } }
+
+/* Fixed four columns once there is room, so the rows divide evenly:
+   next(2)+habits+study, then streak+progress(3). auto-fit alone left the
+   streak card stranded beside a large gap. */
+@media (min-width:1100px){
+  .home-grid{ grid-template-columns:repeat(4, 1fr); }
+  .h-next{ grid-column:span 2; }
+  .h-wide{ grid-column:span 4; }
+  .h-half{ grid-column:span 2; }
+}
+
+@media (max-width:760px){
+  .h-next{ grid-column:1 / -1; }
+  .h-exam{ grid-template-columns:96px 1fr 40px; }
+}
+
+/* ─────────────────────────────  PRO  ────────────────────────────── */
+/* Deliberately quiet: a header affordance, not a call to action competing
+   with the app's own content. It gains colour only on hover. */
+.btn-pro{
+  display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+  padding:8px 13px; border-radius:10px; font-size:12.5px; font-weight:550;
+  letter-spacing:-.005em; white-space:nowrap; cursor:pointer;
+  color:var(--text-dim); background:var(--panel);
+  border:1px solid var(--line);
+  transition:color .16s, border-color .16s, background .16s;
+}
+.btn-pro svg{ color:var(--text-faint); transition:color .16s; }
+.btn-pro:hover{
+  color:#fbbf24; background:color-mix(in srgb,#fbbf24 8%, var(--panel));
+  border-color:color-mix(in srgb,#fbbf24 34%, transparent);
+}
+.btn-pro:hover svg{ color:#fbbf24; }
+
+/* Inside the upgrade dialog it *is* the primary action, so it keeps weight. */
+.pro-modal .btn-pro{
+  color:#2a1704; background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  border-color:rgba(251,191,36,.5); font-weight:650; font-size:14px;
+}
+.pro-modal .btn-pro svg{ color:#2a1704; }
+.pro-modal .btn-pro:hover{ filter:brightness(1.06); background:linear-gradient(135deg,#fcd34d,#f59e0b); }
+
+.pro-badge{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:8px 14px; border-radius:11px; white-space:nowrap;
+  font-family:var(--font-num); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:#fbbf24; background:color-mix(in srgb, #fbbf24 12%, transparent);
+  border:1px solid color-mix(in srgb, #fbbf24 40%, transparent);
+}
+
+.pro-status{
+  display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:10px;
+  background:var(--ground-2); border:1px solid var(--line);
+}
+.pro-status .dot{ width:9px; height:9px; border-radius:99px; flex:none; background:var(--text-faint); }
+.pro-status.on .dot{ background:#fbbf24; box-shadow:0 0 8px #fbbf24; }
+.pro-status b{ font-size:13px; color:var(--text); }
+.pro-status span{ display:block; font-size:11.5px; color:var(--text-faint); margin-top:2px; }
+
+.licence-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.licence-row input{
+  flex:1 1 190px; min-width:0; padding:9px 12px; border-radius:8px;
+  background:var(--ground-2); border:1px solid var(--line);
+  font-family:var(--font-num); font-size:12px; letter-spacing:.02em;
+}
+.licence-row input:focus{ border-color:color-mix(in srgb, #fbbf24 55%, transparent); outline:none; }
+
+@media (max-width:720px){
+  .btn-pro, .pro-badge{ flex:1 1 100%; justify-content:center; }
+}
+
 /* ─────────────────────────  LIVE EXAM MODE  ──────────────────────
    Read from across a desk mid-exam: oversized numerals, one dominant
    status colour, and no decoration competing with the clock. */
@@ -612,7 +846,7 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   position:relative; border-radius:20px; padding:34px 30px 30px;
   background:linear-gradient(180deg, color-mix(in srgb, var(--phase) 7%, var(--panel)), var(--panel));
   border:2px solid color-mix(in srgb, var(--phase) 46%, transparent);
-  box-shadow:0 0 40px -22px var(--phase);
+  box-shadow:0 0 32px -24px var(--phase);
   transition:border-color .4s, box-shadow .4s, background .4s;
   display:flex; flex-direction:column; gap:22px; align-items:center;
 }
@@ -621,8 +855,8 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
 .exam-stage[data-phase="done"]  { --phase: var(--coral); }
 
 @keyframes examPulse{
-  0%,100%{ border-color:color-mix(in srgb, var(--phase) 40%, transparent); box-shadow:0 0 40px -24px var(--phase); }
-  50%    { border-color:var(--phase);                                      box-shadow:0 0 66px -10px var(--phase); }
+  0%,100%{ border-color:color-mix(in srgb, var(--phase) 40%, transparent); box-shadow:0 0 32px -26px var(--phase); }
+  50%    { border-color:var(--phase);                                      box-shadow:0 0 53px -12px var(--phase); }
 }
 
 .exam-title{
@@ -637,7 +871,7 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   font-family:var(--font-num); font-variant-numeric:tabular-nums;
   font-size:clamp(58px, 13vw, 148px); font-weight:700; line-height:.92;
   letter-spacing:-.03em; color:var(--phase); text-align:center;
-  text-shadow:0 0 46px color-mix(in srgb, var(--phase) 30%, transparent);
+  text-shadow:0 0 37px color-mix(in srgb, var(--phase) 24%, transparent);
 }
 :root.no-glow .exam-clock{ text-shadow:none; }
 
@@ -648,7 +882,7 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
 }
 .exam-fill{
   height:100%; border-radius:99px; background:var(--phase);
-  box-shadow:0 0 16px -3px var(--phase);
+  box-shadow:0 0 13px -4px var(--phase);
   transition:width .3s linear, background .4s;
 }
 :root.no-glow .exam-fill{ box-shadow:none; }
@@ -770,6 +1004,81 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   border:1px solid var(--pv-edge,#bfe3cb);
 }
 
+/* ── Ready-made preset deck ── */
+.deck-head{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin:26px 0 12px; }
+.deck-head .panel-title{ font-size:20px; }
+.deck-lock{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 10px; border-radius:99px;
+  color:#fbbf24; background:color-mix(in srgb,#fbbf24 12%, transparent);
+  border:1px solid color-mix(in srgb,#fbbf24 38%, transparent);
+}
+
+.preset-deck{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:12px; }
+
+.pcard{
+  position:relative; overflow:hidden; border-radius:14px; text-align:left; padding:0;
+  background:var(--panel); border:1px solid var(--line);
+  transition:border-color .16s, transform .14s;
+}
+.pcard:hover{ transform:translateY(-2px); border-color:var(--text-faint); }
+.pcard .strip{ height:4px; background:var(--c); }
+.pcard-inner{
+  display:flex; flex-direction:column; gap:5px; padding:14px 16px 15px;
+  transition:filter .3s ease, opacity .3s ease;
+}
+.pcard-name{ font-size:14px; font-weight:600; color:var(--text); }
+.pcard-note{ font-size:11.5px; color:var(--text-faint); }
+.pcard-time{ font-family:var(--font-num); font-size:11px; color:var(--text-dim); letter-spacing:.04em; }
+
+/* Locked state: the template is legible enough to want, not to copy. */
+.pcard.locked .pcard-inner{ filter:blur(5px) saturate(.6); opacity:.65; user-select:none; }
+.pcard.locked{ cursor:pointer; }
+.pcard.locked:hover{ border-color:color-mix(in srgb,#fbbf24 50%, transparent); }
+.pcard-lock{
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:7px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--panel) 55%, transparent), color-mix(in srgb, var(--panel) 78%, transparent));
+}
+/* Not named .ring: that class already rotates its svg -90deg for the
+   weekly progress ring, which would tip the padlock on its side. */
+.pcard-lock .lock-ring{
+  width:34px; height:34px; border-radius:99px; display:grid; place-items:center;
+  color:#fbbf24; background:color-mix(in srgb,#fbbf24 14%, transparent);
+  border:1px solid color-mix(in srgb,#fbbf24 42%, transparent);
+}
+.pcard-lock b{
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:#fbbf24;
+}
+.pcard:not(.locked) .pcard-lock{ display:none; }
+
+/* ── Pro upgrade dialog ── */
+.pro-modal{ width:min(430px, calc(100% - 32px)); text-align:left; }
+.pro-modal .body{ display:flex; flex-direction:column; gap:14px; padding:4px 20px 20px; }
+.pro-lede{ font-size:13.5px; color:var(--text-dim); line-height:1.55; }
+.pro-list{ display:flex; flex-direction:column; gap:8px; }
+.pro-item{ display:flex; align-items:flex-start; gap:9px; font-size:13px; color:var(--text); }
+.pro-item svg{ color:#fbbf24; flex:none; margin-top:2px; }
+.pro-modal .btn-pro{ justify-content:center; width:100%; padding:12px 16px; font-size:14px; }
+
+.roadmap-head{
+  display:flex; align-items:center; gap:8px; margin-top:2px;
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.roadmap-note{ font-size:11.5px; color:var(--text-faint); line-height:1.45; }
+.roadmap{ display:flex; flex-wrap:wrap; gap:6px; }
+.roadmap span{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11.5px; padding:5px 10px; border-radius:99px;
+  color:var(--text-dim); background:var(--ground-2); border:1px dashed var(--line);
+}
+.roadmap span::before{
+  content:""; width:5px; height:5px; border-radius:99px;
+  background:var(--text-faint); flex:none;
+}
+
 /* ── Add / edit dialog ── */
 .modal-scrim{
   position:fixed; inset:0; z-index:50; background:rgba(3,6,12,.66); backdrop-filter:blur(3px);
@@ -838,6 +1147,26 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
 }
 .set-legend svg{ color:var(--accent); }
 .set-row{ display:flex; flex-direction:column; gap:7px; }
+
+/* Locked appearance groups: still visible so the value is obvious, but
+   inert, with one overlay catching every click. */
+.set-group.gated{ position:relative; }
+.set-group.gated .gate-content{ pointer-events:none; opacity:.5; filter:saturate(.55); }
+.gate-veil{
+  position:absolute; inset:-6px -8px; z-index:3; border-radius:12px;
+  background:transparent; cursor:pointer;
+  transition:background .15s, box-shadow .15s;
+}
+.gate-veil:hover{
+  background:color-mix(in srgb,#fbbf24 7%, transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,#fbbf24 30%, transparent);
+}
+.gate-badge{
+  display:inline-flex; align-items:center; gap:4px; margin-left:8px;
+  padding:2px 7px; border-radius:99px; letter-spacing:.12em;
+  color:#fbbf24; background:color-mix(in srgb,#fbbf24 12%, transparent);
+  border:1px solid color-mix(in srgb,#fbbf24 32%, transparent);
+}
 .set-row > label,
 .set-name{ font-size:13px; color:var(--text); }
 .set-help{ font-size:11.5px; color:var(--text-faint); line-height:1.45; }
@@ -951,11 +1280,13 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
       </div>
     </div>
     <nav class="tabs" role="tablist" id="tabs">
-      <button class="tab" role="tab" data-tab="habits"  aria-selected="true"><span data-icon="grid"></span> Daily Tracker</button>
+      <button class="tab" role="tab" data-tab="home" aria-selected="true"><span data-icon="home"></span> Home</button>
+      <button class="tab" role="tab" data-tab="habits"  aria-selected="false"><span data-icon="grid"></span> Daily Tracker</button>
       <button class="tab" role="tab" data-tab="planner" aria-selected="false"><span data-icon="calendar"></span> Exam Planner</button>
       <button class="tab" role="tab" data-tab="countdown" aria-selected="false"><span data-icon="timer"></span> Countdown Timers</button>
       <button class="tab" role="tab" data-tab="exam" aria-selected="false"><span data-icon="siren"></span> Live Exam Mode</button>
     </nav>
+    <span id="proSlot"></span>
     <button class="gear" id="gearBtn" aria-label="Open settings" aria-expanded="false"></button>
   </header>
 
@@ -1017,6 +1348,46 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   </form>
 </div>
 
+<div class="modal-scrim" id="proScrim"></div>
+<div class="modal pro-modal" id="proModal" role="dialog" aria-modal="true" aria-labelledby="proModalTitle" aria-hidden="true">
+  <div class="modal-head">
+    <span class="panel-title" id="proModalTitle">Quiet Progress Pro</span>
+    <button class="icon-btn" id="proClose" type="button" aria-label="Close"></button>
+  </div>
+  <div class="body">
+    <p class="pro-lede">Ready-made countdown templates are part of Pro. Everything you already use —
+      habits, planner, your own countdowns and Live Exam Mode — stays free.</p>
+    <div class="pro-list" id="proList"></div>
+    <a class="btn-pro lemonsqueezy-button" id="proBuyBtn" href="#" target="_blank" rel="noopener noreferrer"></a>
+    <div class="roadmap-head" id="roadmapHead"></div>
+    <p class="roadmap-note">Planned for future releases. These are not part of Pro today,
+      and buying now does not guarantee them.</p>
+    <div class="roadmap" id="proRoadmap"></div>
+    <div class="set-row">
+      <span class="set-name">Already bought it?</span>
+      <div class="licence-row">
+        <input id="proKey" type="text" maxlength="80" spellcheck="false"
+               placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" aria-label="Licence key"/>
+        <button class="minibtn" id="proKeyBtn" type="button">Activate</button>
+      </div>
+      <span class="set-help">Verified with Lemon Squeezy when this device is online.</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="obScrim"></div>
+<div class="modal ob-modal" id="obModal" role="dialog" aria-modal="true" aria-labelledby="obTitle" aria-hidden="true">
+  <div class="modal-head">
+    <span class="panel-title" id="obTitle">Pick a starting point</span>
+    <button class="icon-btn" id="obClose" type="button" aria-label="Close"></button>
+  </div>
+  <div class="body">
+    <p class="pro-lede">Choose a set of habits to begin with. You can add, rename or
+      delete any of them afterwards — nothing here is fixed.</p>
+    <div class="ob-packs" id="obPacks"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1059,7 +1430,12 @@ const P = {
   shrink:   '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>',
   volume:   '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/>',
   volumeOff:'<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
-  siren:    '<path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/>'
+  siren:    '<path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/>',
+  home:     '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  arrow:    '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  lock:     '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  unlock:   '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>'
 };
 const icon = (n, s = 16, sw = 2) =>
   `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||""}</svg>`;
@@ -1162,6 +1538,40 @@ const cardStyle = (hex, past) => {
   return `--leaf:${p.leaf};--leaf-edge:${p.edge};--leaf-deep:${p.deep};--leaf-mid:${p.mid};--leaf-cell:${p.cell}`;
 };
 
+/* ── Pro ──────────────────────────────────────────────────────────
+   The stored flag is a convenience, not a licence check: anything held
+   in localStorage can be edited by whoever owns the browser. Activation
+   by key is verified against Lemon Squeezy when the network allows it. */
+const CHECKOUT_URL = "https://quietprogressapp.lemonsqueezy.com/checkout/buy/a1368c6d-9c3f-41ab-8cd4-ca9134eb9f38";
+const LS_ACTIVATE  = "https://api.lemonsqueezy.com/v1/licenses/activate";
+
+const DEFAULT_PRO = { active:false, source:null, key:null, since:null, verified:false };
+
+/* Planned, not shipped. Always rendered under a heading that says so —
+   nobody should read this list as describing what they are buying today. */
+const PRO_ROADMAP = [
+  "Cloud Sync",
+  "Mobile Companion App",
+  "AI Study Plans",
+  "Desktop & Mobile Widgets",
+  "Advanced Analytics",
+  "Calendar Integration",
+  "Subject-Specific Tracking"
+];
+
+/* ── Ready-made countdowns (Pro) ──────────────────────────────────
+   Templates only: picking one opens the normal Add dialog pre-filled,
+   so the date is still the user's choice. Nothing that previously
+   worked is gated — manual countdowns stay free. */
+const COUNTDOWN_PRESETS = [
+  { id:"p_bio4",   name:"Biology Unit 4",     time:"09:00", color:"#dcf1e2", note:"Written paper" },
+  { id:"p_bio5",   name:"Biology Unit 5",     time:"09:00", color:"#d8e8f8", note:"Written paper" },
+  { id:"p_bio6",   name:"Biology Unit 6",     time:"09:00", color:"#e4dcf6", note:"Practical"     },
+  { id:"p_chem",   name:"Chemistry Paper 2",  time:"14:00", color:"#fbe1cd", note:"Afternoon sitting" },
+  { id:"p_course", name:"Coursework Deadline",time:"23:59", color:"#2b3444", note:"End of day"    },
+  { id:"p_results",name:"Results Day",        time:"08:00", color:"#123040", note:"Morning release" }
+];
+
 /* ── Live Exam Mode ── */
 const EXAM_PRESETS = [
   { id:"u4",     title:"Biology Unit 4", mins:105 },
@@ -1182,21 +1592,28 @@ const blankExam = () => ({
 });
 
 /* ── App ground ── */
-const BG_DEFAULT = "original";
+const BG_DEFAULT = "#0f172a";          // Dark Slate / Navy
 const BG_COLORS = [
-  { id:"original", hex:"",        label:"Original"      },
-  { id:"slate",    hex:"#0f172a", label:"Slate"         },
+  { id:"slate",    hex:"#0f172a", label:"Dark Slate"    },   // first swatch = the default
   { id:"midnight", hex:"#090d16", label:"Midnight"      },
   { id:"oled",     hex:"#000000", label:"Pure OLED"     },
   { id:"navy",     hex:"#0b1329", label:"Deep Navy"     },
-  { id:"emerald",  hex:"#061f17", label:"Dark Emerald"  }
+  { id:"emerald",  hex:"#061f17", label:"Dark Emerald"  },
+  { id:"original", hex:"",        label:"Original"      }
 ];
 
 /* ═══════════════════════════  STORAGE  ═══════════════════════════ */
 const KEY = "quietprogress.tracker.v1";
 let memoryOnly = false;
 
-const DEFAULT_HABITS = [
+/* Which build is this? The preload script only exists in the packaged
+   desktop app, so its absence means we are running on the web. */
+const IS_DESKTOP = typeof window !== "undefined" && !!(window.desktop && window.desktop.isDesktop);
+
+/* The desktop build keeps its original set. The web build ships a neutral
+   fitness routine instead — a general audience should not inherit a
+   faith-specific one. */
+const DESKTOP_HABITS = [
   { id:"h_fajr",    icon:"🕌", name:"Fajr Prayer"     },
   { id:"h_dhuhr",   icon:"🕌", name:"Dhuhr Prayer"    },
   { id:"h_asr",     icon:"🕌", name:"Asr Prayer"      },
@@ -1206,6 +1623,31 @@ const DEFAULT_HABITS = [
   { id:"h_study",   icon:"📚", name:"Study ≥ 3 Hours" },
   { id:"h_exam",    icon:"📝", name:"Solve Exam"      },
   { id:"h_shower",  icon:"🚿", name:"Showering"       }
+];
+const WEB_HABITS = [
+  { id:"h_gym",      icon:"🏋️", name:"Gym / Workout"        },
+  { id:"h_stretch",  icon:"🧘", name:"Stretch & Mobility"   },
+  { id:"h_water",    icon:"💧", name:"Drink 3L Water"       },
+  { id:"h_cardio",   icon:"🏃", name:"Cardio Session"       },
+  { id:"h_recovery", icon:"🛌", name:"Post-Workout Recovery" }
+];
+
+const DEFAULT_HABITS = (IS_DESKTOP ? DESKTOP_HABITS : WEB_HABITS).map(h => ({ ...h }));
+
+/* Optional starting points offered on first launch. */
+const STARTER_PACKS = [
+  { id:"school", label:"High School Student", note:"Lessons, homework, revision",
+    habits:[ {icon:"⏰",name:"Wake Up Early"},{icon:"📚",name:"Study ≥ 2 Hours"},{icon:"📝",name:"Homework Done"},
+             {icon:"📖",name:"Read 20 Pages"},{icon:"🏃",name:"Exercise"},{icon:"😴",name:"Sleep by 11pm"} ] },
+  { id:"uni", label:"University Student", note:"Lectures, labs, deadlines",
+    habits:[ {icon:"🎓",name:"Attend Lectures"},{icon:"📚",name:"Study ≥ 3 Hours"},{icon:"🧪",name:"Lab / Assignment Work"},
+             {icon:"📖",name:"Course Reading"},{icon:"🏋️",name:"Gym"},{icon:"😴",name:"7 Hours Sleep"} ] },
+  { id:"code", label:"Coding / Programming", note:"Practice, shipping, review",
+    habits:[ {icon:"💻",name:"Solve a Problem"},{icon:"🚀",name:"Ship Something"},{icon:"📗",name:"Read Docs"},
+             {icon:"🔍",name:"Review Code"},{icon:"🧩",name:"Side Project"},{icon:"📵",name:"No Doomscrolling"} ] },
+  { id:"scratch", label:"Start from Scratch",
+    note: IS_DESKTOP ? "Keep the built-in set" : "Keep the fitness starter set",
+    habits: null }
 ];
 
 const today = new Date();
@@ -1254,9 +1696,11 @@ const DENSITY = {
   roomy:   { w:38, h:45, b:23, label:"Roomy"   }
 };
 const DEFAULT_SETTINGS = {
-  font: "system", titles: "hand", accent: "teal",
-  density: "cozy", weekStart: 1, basis: "elapsed", glow: true,
-  bg: BG_DEFAULT                     // "original" = leave the built-in ramp alone
+  font: "system", titles: "sans", accent: "teal",
+  density: "roomy", weekStart: 1, basis: "elapsed", glow: true,
+  bg: BG_DEFAULT,                    // "original" = leave the built-in ramp alone
+  pro: { ...DEFAULT_PRO },
+  onboarded: false
 };
 
 const blank = () => ({
@@ -1266,9 +1710,11 @@ const blank = () => ({
   tasks:  {},
   countdowns: [],
   exam: blankExam(),
+  study: {},            // "YYYY-MM-DD" -> milliseconds actually timed
+  seenMilestones: {},   // so a celebration appears once, not every render
   settings: { ...DEFAULT_SETTINGS },
   ui: {
-    tab: "habits",
+    tab: "home",
     month: `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`,
     week: iso(mondayOf(today))
   }
@@ -1287,7 +1733,12 @@ try {
       settings: { ...DEFAULT_SETTINGS, ...(p.settings||{}) }   // older saves predate settings
     };
     if (!state.exam.fired || typeof state.exam.fired !== "object") state.exam.fired = {};
-    if (!Array.isArray(state.habits) || !state.habits.length) state.habits = blank().habits;
+    state.settings.pro = { ...DEFAULT_PRO, ...(p.settings && p.settings.pro) };  // predates Pro
+    if (!state.study || typeof state.study !== "object") state.study = {};
+    if (!state.seenMilestones || typeof state.seenMilestones !== "object") state.seenMilestones = {};
+    // An empty habit list is now a legitimate state (web build, or a user who
+    // deleted them all), so it must not be silently refilled with defaults.
+    if (!Array.isArray(state.habits)) state.habits = blank().habits;
     if (!Array.isArray(state.countdowns)) state.countdowns = [];   // predates the Countdown tab
     // Backfill fields added after this save was written, then persist once so
     // storage matches what the app is actually holding.
@@ -1436,7 +1887,7 @@ function renderGrid(mk, M){
         <button class="box${on ? " on" : ""}" role="checkbox" aria-checked="${on}"
           aria-label="${esc(habit.name)}, ${MONTHS[m]} ${dm.d}"
           data-act="toggle" data-h="${habit.id}" data-d="${dm.d}"
-          style="--wk:var(${v});--wk-line:color-mix(in srgb, var(${v}) 34%, transparent);--wk-glow:color-mix(in srgb, var(${v}) 55%, transparent)">${icon("check",12,3.2)}</button>
+          style="--wk:var(${v});--wk-line:color-mix(in srgb, var(${v}) 34%, transparent);--wk-glow:color-mix(in srgb, var(${v}) 44%, transparent)">${icon("check",12,3.2)}</button>
       </td>`;
     });
 
@@ -1515,7 +1966,7 @@ function renderTrend(M){
           <stop offset="100%" style="stop-color:var(--accent)" stop-opacity="0"/>
         </linearGradient>
         <filter id="glow" x="-25%" y="-60%" width="150%" height="240%">
-          <feGaussianBlur stdDeviation="4.5" result="b"/>
+          <feGaussianBlur stdDeviation="3.6" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
@@ -1565,6 +2016,23 @@ function viewHabits(){
       <div class="kpi-value num">${value}${unit ? `<small>${unit}</small>` : ""}</div>
       ${extra}
       <div class="kpi-foot">${foot}</div>
+    </section>`;
+
+  if (!state.habits.length) return `
+    <div class="cd-empty" style="min-height:280px">
+      ${icon("grid",30,1.4)}
+      <b>No habits yet</b>
+      <span>Add the routines you want to keep, then tick them off each day.</span>
+      <div class="set-actions" style="justify-content:center;margin-top:6px">
+        <button class="btn" data-act="focus-newhabit">${icon("plus",15,2.2)} Create Habit</button>
+        <button class="minibtn" data-act="onboard-open">${icon("spark",13,1.9)} Use a starter pack</button>
+      </div>
+    </div>
+    <section class="panel" style="margin-top:16px">
+      <form class="addhabit" data-act="add-habit">
+        <input id="newHabit" name="newHabit" type="text" maxlength="40" placeholder="e.g. 📖 Read 20 pages" autocomplete="off"/>
+        <button class="minibtn" type="submit">${icon("plus",13,2)} Add habit</button>
+      </form>
     </section>`;
 
   return `
@@ -1715,7 +2183,7 @@ function renderRing(pct, done, total){
       <circle cx="66" cy="66" r="${R}" fill="none" stroke="#0c1424" stroke-width="12"/>
       <circle id="ringArc" cx="66" cy="66" r="${R}" fill="none" stroke="url(#ringG)" stroke-width="12" stroke-linecap="round"
         stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
-        style="transition:stroke-dashoffset .55s cubic-bezier(.22,1,.36,1); filter:drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 50%, transparent))"/>
+        style="transition:stroke-dashoffset .55s cubic-bezier(.22,1,.36,1); filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 40%, transparent))"/>
     </svg>
     <div class="ring-mid"><div class="ring-pct num">${pct}%</div><div class="ring-cap">${done}/${total} done</div></div>
   </div>`;
@@ -1774,7 +2242,10 @@ function viewPlanner(){
           <button class="icon-btn danger" data-act="del-exam" data-id="${e.id}" title="Delete exam">${icon("trash",15,1.9)}</button>
         </div>`;
       }).join("")
-    : `<div class="empty" style="min-height:110px">${icon("book",24,1.5)}<div>No exams yet. Add one to start planning.</div></div>`;
+    : `<div class="empty" style="min-height:130px">${icon("book",24,1.5)}
+         <div>No exams yet. Add one and its revision sessions will spread across the week.</div>
+         <button class="minibtn" data-act="focus-exam">${icon("plus",13,2)} Add Exam</button>
+       </div>`;
 
   return `
   <section class="planner-top">
@@ -1918,6 +2389,23 @@ function cdCard(cd){
 function viewCountdown(){
   const list = sortedCountdowns();
   const upcoming = list.filter(c => !timeLeft(c).past).length;
+  const pro = isPro();
+
+  const deck = COUNTDOWN_PRESETS.map(p => `
+    <button class="pcard${pro ? "" : " locked"}" style="--c:${p.color}"
+      data-act="cd-preset" data-id="${p.id}"
+      aria-label="${pro ? `Use the ${esc(p.name)} template` : `${esc(p.name)} — Pro feature, opens the upgrade options`}">
+      <span class="strip"></span>
+      <span class="pcard-inner">
+        <span class="pcard-name">${esc(p.name)}</span>
+        <span class="pcard-note">${esc(p.note)}</span>
+        <span class="pcard-time">${esc(p.time)}</span>
+      </span>
+      <span class="pcard-lock" aria-hidden="true">
+        <span class="lock-ring">${icon("lock",16,2)}</span>
+        <b>Pro</b>
+      </span>
+    </button>`).join("");
 
   const cards = list.length
     ? list.map(cdCard).join("")
@@ -1931,9 +2419,20 @@ function viewCountdown(){
   <div class="cd-head">
     <span class="panel-title">Countdown Timers</span>
     <span class="eyebrow">${list.length} tracked · ${upcoming} still ahead</span>
-    <button class="btn" data-act="cd-add">${icon("plus",15,2.2)} Add Countdown</button>
+    <button class="btn" data-act="cd-add">${icon(canAddCountdown() ? "plus" : "lock",15,2.2)} Add Countdown</button>
   </div>
-  <div class="cd-grid" id="cdGrid">${cards}</div>`;
+  ${!canAddCountdown() ? `<div class="limit-note">${icon("lock",13,2)}
+     <span>Free plan includes ${FREE_COUNTDOWNS} custom countdown. <button class="linkish" data-act="pro-open">Upgrade for unlimited</button>.</span>
+   </div>` : ""}
+  <div class="cd-grid" id="cdGrid">${cards}</div>
+
+  <div class="deck-head">
+    <span class="panel-title">Ready-made countdowns</span>
+    ${pro
+      ? `<span class="eyebrow">tap one to pre-fill the form</span>`
+      : `<span class="deck-lock">${icon("lock",11,2.2)} Pro</span>`}
+  </div>
+  <div class="preset-deck" id="presetDeck">${deck}</div>`;
 }
 
 /* ── Live ticking ──────────────────────────────────────────────────
@@ -2035,17 +2534,20 @@ function setCdColor(hex){
   paintCdColorUI();
 }
 
-function openCdModal(id){
+/** `preset` pre-fills a new countdown from a template; the date stays blank
+    so the user still chooses when it actually is. */
+function openCdModal(id, preset){
   const cd = id ? state.countdowns.find(c => c.id === id) : null;
   cdLastFocus = document.activeElement;
 
-  document.getElementById("cdModalTitle").textContent = cd ? "Edit countdown" : "New countdown";
+  document.getElementById("cdModalTitle").textContent =
+    cd ? "Edit countdown" : preset ? preset.name : "New countdown";
   document.getElementById("cdId").value   = cd ? cd.id : "";
-  document.getElementById("cdName").value = cd ? cd.name : "";
+  document.getElementById("cdName").value = cd ? cd.name : preset ? preset.name : "";
   document.getElementById("cdDate").value = cd ? cd.date : "";
-  document.getElementById("cdTime").value = cd ? (cd.time || "09:00") : "09:00";
+  document.getElementById("cdTime").value = cd ? (cd.time || "09:00") : preset ? preset.time : "09:00";
   document.getElementById("cdDelete").hidden = !cd;
-  setCdColor(cd ? (cd.color || CARD_DEFAULT) : CARD_DEFAULT);
+  setCdColor(cd ? (cd.color || CARD_DEFAULT) : preset ? preset.color : CARD_DEFAULT);
 
   cdModal.classList.add("open");
   cdScrim.classList.add("open");
@@ -2186,6 +2688,7 @@ function speak(text){
    Runs whenever the exam is live, not just while its tab is showing,
    so announcements still land if you switch tabs mid-paper. */
 let examTimer = null;
+let examBankTick = 0;
 
 function stopExamTick(){ if (examTimer){ clearInterval(examTimer); examTimer = null; } }
 
@@ -2193,6 +2696,19 @@ function startExamTick(){
   stopExamTick();
   if (state.exam.status !== "running") return;
   examTimer = setInterval(examTick, 250);
+}
+
+/* Study time is *measured*, never estimated: only seconds actually run on the
+   Live Exam Mode clock are banked, so the dashboard figure means something. */
+function bankStudyTime(){
+  const e = state.exam;
+  const elapsed = Math.max(0, e.durationMs - Math.max(0, examRemainingRaw()));
+  const already = e.banked || 0;
+  const delta = elapsed - already;
+  if (delta < 1000) return false;
+  state.study[TODAY_ISO] = (state.study[TODAY_ISO] || 0) + delta;
+  e.banked = elapsed;
+  return true;
 }
 
 function examTick(){
@@ -2216,10 +2732,16 @@ function examTick(){
     e.elapsedMs = e.durationMs;
     e.runStartEpoch = null;
     perfAnchor = null;
+    bankStudyTime();
     stopExamTick();
     save();
     render();
     return;
+  }
+  // Bank roughly every 20s so a long unbroken session still counts.
+  if (Math.floor(Date.now() / 20000) !== examBankTick){
+    examBankTick = Math.floor(Date.now() / 20000);
+    if (bankStudyTime()) dirty = true;
   }
   if (dirty) save();
 
@@ -2258,6 +2780,7 @@ function examStart(){
 function examPause(){
   const e = state.exam;
   if (e.status !== "running") return;
+  bankStudyTime();
   e.elapsedMs = Math.min(e.durationMs, e.durationMs - examRemainingRaw());
   e.runStartEpoch = null;
   perfAnchor = null;
@@ -2269,7 +2792,7 @@ function examPause(){
 function examReset(){
   const e = state.exam;
   if (e.status !== "idle" && !confirm("Reset the timer back to the full duration?")) return;
-  e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {};
+  e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {}; e.banked = 0;
   perfAnchor = null;
   stopExamTick();
   try { speechSynthesis && speechSynthesis.cancel(); } catch {}
@@ -2283,7 +2806,7 @@ function examApplyPreset(id){
   if (e.status === "running" && !confirm("The timer is running. Switch exam and reset it?")) return;
   e.presetId = id;
   if (id !== "custom"){ e.title = p.title; e.durationMs = p.mins * 60000; }
-  e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {};
+  e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {}; e.banked = 0;
   perfAnchor = null;
   stopExamTick();
   save(); render();
@@ -2396,6 +2919,391 @@ function viewExam(){
   </div>`;
 }
 
+/* ═══════════════════════  TAB 0 — HOME DASHBOARD  ═══════════════════════ */
+const monthKeyOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+
+/** Share of habits ticked on a given date, 0..1. */
+function dayRatio(d){
+  if (!state.habits.length) return 0;
+  const mk = monthKeyOf(d), day = d.getDate();
+  let n = 0;
+  state.habits.forEach(h => { if (isChecked(mk, h.id, day)) n++; });
+  return n / state.habits.length;
+}
+
+/** Consecutive days at 50%+ of habits. Today only breaks a streak once it
+    is over — an unfinished today is not counted as a failure. */
+function currentStreak(){
+  let cur = new Date(today), streak = 0;
+  if (dayRatio(cur) < 0.5) cur = addDays(cur, -1);
+  while (dayRatio(cur) >= 0.5 && streak < 500){ streak++; cur = addDays(cur, -1); }
+  return streak;
+}
+
+/** Nearest upcoming thing, drawn from both countdowns and planner exams. */
+function nextEvent(){
+  const items = [];
+  state.countdowns.forEach(c => {
+    const t = cdTarget(c);
+    if (!isNaN(t) && t.getTime() > Date.now())
+      items.push({ name:c.name, when:t.getTime(), kind:"Countdown", color:c.color });
+  });
+  state.exams.forEach(e => {
+    if (!e.date) return;
+    const t = parseISO(e.date); t.setHours(9,0,0,0);
+    if (t.getTime() > Date.now())
+      items.push({ name:e.name, when:t.getTime(), kind:"Planner exam", color:null });
+  });
+  items.sort((a,b) => a.when - b.when);
+  return items[0] || null;
+}
+
+/** Revision coverage: completed planner sessions against total exam units. */
+function examProgress(){
+  let units = 0, done = 0;
+  state.exams.forEach(e => { units += Math.max(0, Number(e.units) || 0); });
+  Object.values(state.tasks).forEach(list => list.forEach(t => { if (t.done) done++; }));
+  return { units, done, pct: units ? Math.min(100, Math.round(done / units * 100)) : 0 };
+}
+
+const studyToday = () => state.study[TODAY_ISO] || 0;
+
+function sessionsToday(){
+  const list = state.tasks[TODAY_ISO] || [];
+  return { done: list.filter(t => t.done).length, total: list.length };
+}
+
+function fmtDur(ms){
+  const m = Math.floor(ms / 60000);
+  return m < 60 ? `${m}m` : `${Math.floor(m/60)}h ${String(m%60).padStart(2,"0")}m`;
+}
+
+function homeStats(){
+  const mk = monthKeyOf(today), d = today.getDate();
+  const habits = state.habits.map(h => ({ habit:h, done: isChecked(mk, h.id, d) }));
+  const doneToday = habits.filter(x => x.done).length;
+  const W = weekStats();
+  return {
+    habits, doneToday, total: habits.length,
+    pctToday: habits.length ? Math.round(doneToday / habits.length * 100) : 0,
+    streak: currentStreak(),
+    study: studyToday(),
+    sessions: sessionsToday(),
+    next: nextEvent(),
+    exams: examProgress(),
+    week: W
+  };
+}
+
+/* ── Time-of-day greeting that also reports where today stands ── */
+function greeting(s){
+  const h = new Date().getHours();
+  const part = h < 5 ? "Still up" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  if (!s.total) return { hi: `${part}.`, line: "Add your first habit to start tracking." };
+  if (s.doneToday === 0)      return { hi: `${part}!`, line: `You have ${s.total} habit${s.total===1?"":"s"} to tick off today.` };
+  if (s.doneToday === s.total) return { hi: `${part}!`, line: "🎉 Everything is complete for today." };
+  const pct = s.doneToday / s.total;
+  const line = pct >= 0.75 ? `Almost there — ${s.total - s.doneToday} left.`
+             : pct >= 0.5  ? "You're halfway done."
+             : `${s.doneToday} of ${s.total} done so far.`;
+  return { hi: `${part}!`, line };
+}
+
+/* ── Today's Focus: the single most useful next action ── */
+function todaysFocus(s){
+  const undone = (state.tasks[TODAY_ISO] || []).filter(t => !t.done);
+  if (undone.length){
+    const ex = findExam(undone[0].examId);
+    return { kind:"Revision session", title: undone[0].title,
+             sub: `${undone[0].sub || ""}${ex && ex.date ? ` · exam ${fmtShort(parseISO(ex.date))}` : ""}`.trim(),
+             action:"planner", cta:"Open planner" };
+  }
+  if (s.next){
+    const days = Math.max(0, Math.ceil((s.next.when - Date.now()) / 86400000));
+    return { kind:"Next up", title: s.next.name,
+             sub: `${days} day${days===1?"":"s"} away · ${Math.max(0, s.exams.units - s.exams.done)} unit(s) left`,
+             action:"exam", cta:"Start a session" };
+  }
+  const pending = s.habits.filter(x => !x.done)[0];
+  if (pending) return { kind:"Habit", title: `${pending.habit.icon} ${pending.habit.name}`,
+                        sub:"Not ticked off yet today", action:"habits", cta:"Open tracker" };
+  return { kind:"All clear", title:"Nothing outstanding", sub:"Today's list is done.", action:"exam", cta:"Start a session" };
+}
+
+const fmtShort = d => d.toLocaleDateString(undefined,{ day:"numeric", month:"short" });
+
+/* ── Study forecast: current pace projected against the next deadline ── */
+function forecast(s){
+  if (!s.next || !s.exams.units) return null;
+  const days = Math.max(0, Math.ceil((s.next.when - Date.now()) / 86400000));
+  const left = Math.max(0, s.exams.units - s.exams.done);
+  if (!left) return { tone:"good", text:`All ${s.exams.units} units covered with ${days} day${days===1?"":"s"} to spare.` };
+
+  // Pace from the last 14 days of completed sessions.
+  let recent = 0;
+  for (let i = 0; i < 14; i++){
+    const key = iso(addDays(today, -i));
+    (state.tasks[key] || []).forEach(t => { if (t.done) recent++; });
+  }
+  const perDay = recent / 14;
+  if (perDay <= 0) return { tone:"calm", text:`No sessions logged in the last 14 days. ${left} unit${left===1?"":"s"} left in ${days} day${days===1?"":"s"}.` };
+
+  const needDays = Math.ceil(left / perDay);
+  const slack = days - needDays;
+  if (slack >= 1)  return { tone:"good", text:`At your current pace you finish about ${slack} day${slack===1?"":"s"} before ${s.next.name}.` };
+  if (slack === 0) return { tone:"calm", text:`On pace to finish right on the day of ${s.next.name}.` };
+  return { tone:"warn", text:`At this pace you finish ${Math.abs(slack)} day${Math.abs(slack)===1?"":"s"} late — about ${(left/Math.max(days,1)).toFixed(1)} units a day is needed.` };
+}
+
+/* ── Last 14 days of habit completion ── */
+function recentDays(){
+  const out = [];
+  for (let i = 13; i >= 0; i--){
+    const d = addDays(today, -i);
+    out.push({ d, pct: Math.round(dayRatio(d) * 100) });
+  }
+  return out;
+}
+
+function earnedMilestones(s){
+  const got = STREAK_MARKS.filter(m => s.streak >= m).map(m => `${m}-day streak`);
+  if (s.total && s.doneToday === s.total) got.push("Perfect day");
+  if (s.week.total && s.week.done === s.week.total) got.push("Weekly target");
+  return got;
+}
+
+/* ── Insight: one honest sentence about where things stand ── */
+function insight(s){
+  if (!s.total) return { tone:"calm", text:"Add a habit on the Daily Tracker to start building a streak." };
+
+  if (s.doneToday === s.total)
+    return { tone:"good", text:`All ${s.total} habits done today. ${s.streak > 1 ? `That is ${s.streak} days running.` : "Come back tomorrow to start a streak."}` };
+
+  const left = s.total - s.doneToday;
+  const weekLeft = s.week.total - s.week.done;
+
+  if (s.next){
+    const days = Math.ceil((s.next.when - Date.now()) / 86400000);
+    const remaining = Math.max(0, s.exams.units - s.exams.done);
+    if (remaining > 0 && days > 0){
+      const perDay = remaining / days;
+      if (perDay <= 0.5) return { tone:"good", text:`You are ahead of schedule — ${remaining} unit${remaining===1?"":"s"} left with ${days} day${days===1?"":"s"} until ${s.next.name}.` };
+      if (perDay > 2)    return { tone:"warn", text:`Tight: ${remaining} units left and only ${days} day${days===1?"":"s"} to ${s.next.name}. That is about ${Math.ceil(perDay)} a day.` };
+    }
+  }
+
+  if (weekLeft > 0)
+    return { tone:"calm", text:`Complete ${weekLeft} more session${weekLeft===1?"":"s"} this week to stay on track.` };
+
+  return { tone:"calm", text:`${left} habit${left===1?"":"s"} left today. ${s.streak ? `Your ${s.streak}-day streak is intact.` : "Half of them keeps a streak alive."}` };
+}
+
+/* ── Milestones: shown once each, then remembered ── */
+const STREAK_MARKS = [3, 7, 14, 21, 30, 50, 100, 200, 365];
+
+function pendingMilestone(s){
+  const mark = STREAK_MARKS.filter(m => s.streak >= m).pop();
+  if (mark && !state.seenMilestones["streak" + mark])
+    return {
+      id: "streak" + mark,
+      text: `🔥 ${mark}-day streak!`,
+      sub: s.streak > mark
+        ? `You are on ${s.streak} days and counting.`
+        : "Consistency is doing the quiet work."
+    };
+
+  if (s.total && s.doneToday === s.total && !state.seenMilestones["day" + TODAY_ISO])
+    return { id:"day" + TODAY_ISO, text:"✅ Today's goals complete", sub:`All ${s.total} habits ticked off.` };
+
+  const wk = state.ui.week;
+  if (s.week.total > 0 && s.week.done === s.week.total && !state.seenMilestones["week" + wk])
+    return { id:"week" + wk, text:"🎯 Weekly target reached", sub:`All ${s.week.total} revision sessions done.` };
+
+  return null;
+}
+
+/* ── View ── */
+function viewHome(){
+  const s = homeStats();
+  const ins = insight(s);
+  const mile = pendingMilestone(s);
+  const ring = (pct, label, value) => {
+    const R = 30, C = 2 * Math.PI * R;
+    return `<div class="mini-ring">
+      <svg width="76" height="76" viewBox="0 0 76 76">
+        <circle cx="38" cy="38" r="${R}" fill="none" stroke="color-mix(in srgb, var(--text) 12%, transparent)" stroke-width="7"/>
+        <circle cx="38" cy="38" r="${R}" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round"
+          transform="rotate(-90 38 38)" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct/100)).toFixed(1)}"/>
+      </svg>
+      <div class="mini-ring-mid"><b class="num">${value}</b><span>${label}</span></div>
+    </div>`;
+  };
+
+  let nextCard;
+  if (s.next){
+    const t = timeLeft({ date: iso(new Date(s.next.when)), time: new Date(s.next.when).toTimeString().slice(0,5) });
+    nextCard = `
+      <div class="h-next-top">
+        <span class="eyebrow">${esc(s.next.kind)}</span>
+        <h3>${esc(s.next.name)}</h3>
+        <div class="h-when">${esc(fmtWhen(new Date(s.next.when)))}</div>
+      </div>
+      <div class="h-blocks">
+        <div><b class="num">${t.days}</b><span>days</span></div>
+        <div><b class="num">${t.hours}</b><span>hours</span></div>
+        <div><b class="num">${t.minutes}</b><span>minutes</span></div>
+      </div>`;
+  } else {
+    nextCard = `<div class="h-empty">${icon("calendar",26,1.4)}
+      <b>No upcoming exam</b>
+      <span>Add a countdown or an exam in the planner and it will appear here.</span>
+      <button class="minibtn" data-act="go" data-tab="countdown">${icon("plus",13,2)} Add a countdown</button></div>`;
+  }
+
+  const remaining = s.habits.filter(x => !x.done).slice(0, 4)
+    .map(x => `<li>${esc(x.habit.icon)} ${esc(x.habit.name)}</li>`).join("");
+
+  const g = greeting(s);
+  const focus = todaysFocus(s);
+  const fc = forecast(s);
+  const days14 = recentDays();
+  const earned = earnedMilestones(s);
+  const nextMark = STREAK_MARKS.find(m => m > s.streak);
+
+  const maxBar = 100;
+  const chart = days14.map(x => `
+    <div class="d-col" title="${esc(fmtShort(x.d))} — ${x.pct}%">
+      <div class="d-bar" style="height:${Math.max(3, x.pct / maxBar * 100)}%;opacity:${x.pct ? 1 : .28}"></div>
+      <span>${x.d.getDate()}</span>
+    </div>`).join("");
+
+  return `
+  <section class="hero">
+    <div class="hero-text">
+      <h2>${esc(g.hi)}</h2>
+      <p>${esc(g.line)}</p>
+    </div>
+    <button class="btn hero-cta" data-act="go" data-tab="exam">${icon("play",15,2.2)} Start Study Session</button>
+  </section>
+
+  ${mile ? `<div class="milestone" data-mid="${mile.id}">
+      <div><b>${mile.text}</b><span>${esc(mile.sub)}</span></div>
+      <button class="icon-btn" data-act="mile-dismiss" data-id="${mile.id}" aria-label="Dismiss">${icon("x",15,2.2)}</button>
+    </div>` : ""}
+
+  <div class="insight ${ins.tone}">${icon(ins.tone === "good" ? "spark" : ins.tone === "warn" ? "flame" : "trend", 16, 2)}<p>${esc(ins.text)}</p></div>
+
+  <div class="home-grid">
+    <section class="panel h-card h-next">${nextCard}</section>
+
+    <section class="panel h-card">
+      <div class="h-head">${icon("grid",14,2)} Today's habits</div>
+      <div class="h-row">
+        ${ring(s.pctToday, "done", `${s.doneToday}/${s.total}`)}
+        <div class="h-side">
+          ${s.doneToday === s.total && s.total
+            ? `<p class="h-good">Everything ticked off.</p>`
+            : `<ul class="h-list">${remaining || "<li>Nothing left</li>"}</ul>
+               ${s.total - s.doneToday > 4 ? `<span class="h-more">+${s.total - s.doneToday - 4} more</span>` : ""}`}
+          <button class="minibtn" data-act="go" data-tab="habits">Open tracker ${icon("arrow",12,2)}</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel h-card">
+      <div class="h-head">${icon("clock",14,2)} Study time today</div>
+      <div class="h-big num">${s.study ? fmtDur(s.study) : "0m"}</div>
+      <p class="h-note">${s.study
+        ? "Timed on the Live Exam Mode clock."
+        : "Nothing timed yet — run Live Exam Mode and it is counted here."}</p>
+      <div class="h-sub">${s.sessions.total
+        ? `${s.sessions.done}/${s.sessions.total} planner sessions done today`
+        : "No revision sessions scheduled today"}</div>
+      <button class="minibtn" data-act="go" data-tab="exam">Start a timed session ${icon("arrow",12,2)}</button>
+    </section>
+
+    <section class="panel h-card">
+      <div class="h-head">${icon("flame",14,2)} Current streak</div>
+      <div class="h-big num${s.streak ? " hot" : ""}">${s.streak}<small>${s.streak === 1 ? "day" : "days"}</small></div>
+      <p class="h-note">${nextMark
+        ? `${nextMark - s.streak} more day${nextMark - s.streak === 1 ? "" : "s"} to reach a ${nextMark}-day streak.`
+        : "You are past every milestone. Keep it running."}</p>
+      <div class="h-sub">Counts days with at least half your habits done.</div>
+    </section>
+
+    <section class="panel h-card h-focus">
+      <div class="h-head">${icon("target",14,2)} Today's focus</div>
+      <span class="focus-kind">${esc(focus.kind)}</span>
+      <div class="focus-title">${esc(focus.title)}</div>
+      ${focus.sub ? `<p class="h-note">${esc(focus.sub)}</p>` : ""}
+      <button class="minibtn" data-act="go" data-tab="${focus.action}">${esc(focus.cta)} ${icon("arrow",12,2)}</button>
+    </section>
+
+    <section class="panel h-card">
+      <div class="h-head">${icon("trend",14,2)} Study forecast</div>
+      ${fc
+        ? `<div class="forecast ${fc.tone}">${icon(fc.tone === "warn" ? "flame" : "spark",15,2)}<p>${esc(fc.text)}</p></div>`
+        : `<p class="h-note">Add an exam with a date and complete a few sessions — a projection will appear here.</p>`}
+      <div class="h-sub">Based on sessions completed over the last 14 days.</div>
+    </section>
+
+    <section class="panel h-card h-wide">
+      <div class="h-head">${icon("target",14,2)} Overall exam progress</div>
+      ${s.exams.units
+        ? `<div class="h-progress">
+             <div class="bar-track"><div class="bar-fill" style="width:${s.exams.pct}%"></div></div>
+             <span class="num">${s.exams.pct}%</span>
+           </div>
+           <div class="h-sub">${s.exams.done} of ${s.exams.units} units covered across ${state.exams.length} exam${state.exams.length===1?"":"s"} · ${s.week.done}/${s.week.total || 0} sessions this week</div>
+           <div class="h-exams">${state.exams.map(e => {
+              let done = 0;
+              Object.values(state.tasks).forEach(l => l.forEach(t => { if (t.examId === e.id && t.done) done++; }));
+              const pct = e.units ? Math.min(100, Math.round(done / e.units * 100)) : 0;
+              return `<div class="h-exam" style="--c:${(PRI[e.priority]||PRI.medium).c}">
+                <span class="h-exam-name">${esc(e.name)}</span>
+                <span class="bar-track"><span class="h-exam-fill" style="width:${pct}%"></span></span>
+                <span class="num">${pct}%</span>
+              </div>`;
+           }).join("")}</div>`
+        : `<div class="h-empty small">${icon("book",22,1.4)}<b>No exams yet</b>
+             <span>Add one in the planner to track revision coverage.</span>
+             <button class="minibtn" data-act="go" data-tab="planner">Open planner ${icon("arrow",12,2)}</button></div>`}
+    </section>
+
+    <section class="panel h-card h-wide">
+      <div class="h-head">${icon("grid",14,2)} Last 14 days</div>
+      <div class="day-chart">${chart}</div>
+      <div class="h-sub">Share of habits completed each day.</div>
+    </section>
+
+    <section class="panel h-card h-half">
+      <div class="h-head">${icon("spark",14,2)} Milestones earned</div>
+      ${earned.length
+        ? `<div class="earned">${earned.map(e => `<span>${esc(e)}</span>`).join("")}</div>`
+        : `<p class="h-note">Nothing yet — a 3-day streak is the first one.</p>`}
+    </section>
+
+    <section class="panel h-card h-half">
+      <div class="h-head">${icon("clock",14,2)} Recent activity</div>
+      ${(() => {
+        const rows = [];
+        for (let i = 0; i < 7 && rows.length < 4; i++){
+          const d = addDays(today, -i), key = iso(d);
+          const done = (state.tasks[key] || []).filter(t => t.done).length;
+          const ratio = Math.round(dayRatio(d) * 100);
+          const mins = Math.round((state.study[key] || 0) / 60000);
+          if (!done && !ratio && !mins) continue;
+          rows.push(`<li><b>${i === 0 ? "Today" : esc(fmtShort(d))}</b>
+            <span>${ratio}% habits${done ? ` · ${done} session${done===1?"":"s"}` : ""}${mins ? ` · ${fmtDur(mins*60000)} timed` : ""}</span></li>`);
+        }
+        return rows.length
+          ? `<ul class="activity">${rows.join("")}</ul>`
+          : `<p class="h-note">No activity logged yet this week.</p>`;
+      })()}
+    </section>
+  </div>`;
+}
+
 /* ═══════════════════════════  RENDER  ═══════════════════════════ */
 const view = document.getElementById("view");
 
@@ -2410,7 +3318,8 @@ function render(){
   document.querySelectorAll("#tabs .tab").forEach(t =>
     t.setAttribute("aria-selected", String(t.dataset.tab === state.ui.tab)));
 
-  view.innerHTML = state.ui.tab === "habits"    ? viewHabits()
+  view.innerHTML = state.ui.tab === "home"      ? viewHome()
+                 : state.ui.tab === "habits"    ? viewHabits()
                  : state.ui.tab === "countdown" ? viewCountdown()
                  : state.ui.tab === "exam"      ? viewExam()
                  :                                viewPlanner();
@@ -2507,6 +3416,216 @@ function wireTrend(){
   });
   wrap.addEventListener("mouseleave", () => { g.setAttribute("opacity","0"); tip.style.opacity = "0"; });
 }
+
+/* ═══════════════════════════  PRO  ═══════════════════════════════ */
+const isPro = () => !!(state.settings.pro && state.settings.pro.active);
+
+/* The desktop build is unlimited; the web build allows one free custom
+   countdown before asking for Pro. */
+const FREE_COUNTDOWNS = 1;
+const countdownLimit = () => (IS_DESKTOP || isPro()) ? Infinity : FREE_COUNTDOWNS;
+const canAddCountdown = () => state.countdowns.length < countdownLimit();
+
+function setPro(on, source, extra){
+  state.settings.pro = on
+    ? { active:true, source, key:(extra && extra.key) || null,
+        since: new Date().toISOString(), verified: !!(extra && extra.verified) }
+    : { ...DEFAULT_PRO };
+  save();
+  paintPro();
+  render();
+  if (drawer.classList.contains("open")) renderSettings();
+}
+
+/** Header slot: an upgrade call-to-action, or the Pro badge once unlocked. */
+function paintPro(){
+  const slot = document.getElementById("proSlot");
+  if (!slot) return;
+  slot.innerHTML = isPro()
+    ? `<span class="pro-badge" title="Pro unlocked">${icon("spark",13,2)} Pro</span>`
+    : `<a class="btn-pro lemonsqueezy-button" id="upgradeBtn" href="${CHECKOUT_URL}"
+          target="_blank" rel="noopener noreferrer">${icon("spark",15,2)} Upgrade to Pro</a>`;
+}
+
+/* Lemon Squeezy's script self-initialises, so wait for it rather than
+   assuming it is present — it never arrives under a strict CSP. */
+function whenLemonReady(cb){
+  let tries = 0;
+  (function poll(){
+    if (window.LemonSqueezy && window.LemonSqueezy.Setup) return cb(window.LemonSqueezy);
+    if (++tries > 40) return;                 // ~6s, then give up quietly
+    setTimeout(poll, 150);
+  })();
+}
+
+function initLemonSqueezy(){
+  try { if (typeof window.createLemonSqueezy === "function") window.createLemonSqueezy(); } catch {}
+  whenLemonReady(LS => {
+    try {
+      LS.Setup({
+        eventHandler: ev => {
+          if (ev && ev.event === "Checkout.Success"){
+            setPro(true, "purchase", { verified:false });
+            toast("Purchase complete — Pro unlocked");
+          }
+        }
+      });
+    } catch {}
+  });
+}
+
+/** Overlay when the script loaded, otherwise let the link open normally. */
+function openCheckout(e){
+  if (window.LemonSqueezy && window.LemonSqueezy.Url && window.LemonSqueezy.Url.Open){
+    e.preventDefault();
+    try { window.LemonSqueezy.Url.Open(CHECKOUT_URL); return; }
+    catch { /* fall through to the plain link */ }
+  }
+  // No overlay available: the anchor's own target="_blank" handles it, and in
+  // the desktop build main.js sends it to the real browser.
+}
+
+/* Verify a licence key with Lemon Squeezy. Falls back to storing it
+   unverified when the request cannot be made, which is honest about
+   what the app actually knows. */
+async function activateLicence(key, onSuccess){
+  const clean = String(key || "").trim();
+  if (clean.length < 8){ toast("That licence key looks too short"); return; }
+
+  const btn = document.getElementById("licenceBtn");
+  if (btn){ btn.disabled = true; btn.textContent = "Checking…"; }
+
+  let verified = false, message = "";
+  try {
+    const res = await fetch(LS_ACTIVATE, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
+      body: new URLSearchParams({ license_key: clean, instance_name: "Quiet Progress desktop" })
+    });
+    const data = await res.json().catch(() => ({}));
+    verified = !!(data && data.activated);
+    if (!verified) message = (data && data.error) || "Lemon Squeezy did not recognise that key";
+  } catch {
+    message = "offline";
+  }
+
+  if (verified){
+    setPro(true, "licence", { key: clean, verified: true });
+    if (onSuccess) onSuccess(); else toast("Licence verified — Pro unlocked");
+  } else if (message === "offline"){
+    setPro(true, "licence", { key: clean, verified: false });
+    if (onSuccess) onSuccess(); else toast("Saved, but it could not be verified from here");
+  } else {
+    if (btn){ btn.disabled = false; btn.textContent = "Activate"; }
+    toast(message);
+  }
+}
+
+/* ── First-run starter packs ── */
+const obModal = document.getElementById("obModal");
+const obScrim = document.getElementById("obScrim");
+
+function openOnboarding(){
+  document.getElementById("obPacks").innerHTML = STARTER_PACKS.map(p => `
+    <button class="ob-pack" data-pack="${p.id}">
+      <b>${esc(p.label)}</b>
+      <span>${esc(p.note)}</span>
+      <em>${p.habits ? p.habits.map(h => h.icon).join(" ") : "—"}</em>
+    </button>`).join("");
+  obModal.classList.add("open");
+  obScrim.classList.add("open");
+  obModal.setAttribute("aria-hidden","false");
+  setTimeout(() => document.getElementById("obClose").focus(), 30);
+}
+
+function closeOnboarding(){
+  obModal.classList.remove("open");
+  obScrim.classList.remove("open");
+  obModal.setAttribute("aria-hidden","true");
+  state.settings.onboarded = true;   // asked once; never nag again
+  save();
+}
+
+function applyPack(id){
+  const pack = STARTER_PACKS.find(p => p.id === id);
+  if (!pack) return;
+  if (pack.habits){
+    state.habits = pack.habits.map(h => ({ id:"h_" + uid(), icon:h.icon, name:h.name }));
+  }
+  state.settings.onboarded = true;
+  save();
+  closeOnboarding();
+  state.ui.tab = pack.habits ? "habits" : "home";
+  render();
+  toast(pack.habits ? `${pack.label} habits added` : "Starting from scratch");
+}
+
+obScrim.addEventListener("click", closeOnboarding);
+document.getElementById("obClose").addEventListener("click", closeOnboarding);
+document.getElementById("obClose").innerHTML = icon("x",16,2.2);
+document.getElementById("obPacks").addEventListener("click", e => {
+  const b = e.target.closest("[data-pack]");
+  if (b) applyPack(b.dataset.pack);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && obModal.classList.contains("open")) closeOnboarding();
+});
+
+/* ── Upgrade dialog ── */
+const proModal = document.getElementById("proModal");
+const proScrim = document.getElementById("proScrim");
+let proLastFocus = null;
+
+function openProModal(reason){
+  proLastFocus = document.activeElement;
+
+  const lede = document.querySelector("#proModal .pro-lede");
+  if (lede) lede.textContent =
+      reason === "countdown" ? `The web version includes ${FREE_COUNTDOWNS} custom countdown. Pro removes the limit and unlocks everything below. Habits, planner and Live Exam Mode stay free.`
+    : reason === "settings"  ? "Appearance customisation is part of Pro on the web. Your habits, planner, countdowns, Live Exam Mode, backups and licence entry all stay free."
+    : "Ready-made countdown templates are part of Pro. Everything you already use — habits, planner, your own countdowns and Live Exam Mode — stays free.";
+
+  document.getElementById("proList").innerHTML = [
+    "Unlimited custom countdowns",
+    "Fonts, accent colours and background themes",
+    "Grid density, week start and progress basis",
+    "Six ready-made exam and deadline templates"
+  ].map(t => `<div class="pro-item">${icon("check",15,2.4)}<span>${t}</span></div>`).join("");
+
+  const buy = document.getElementById("proBuyBtn");
+  buy.setAttribute("href", CHECKOUT_URL);
+  buy.innerHTML = `${icon("spark",15,2)} Upgrade to Pro`;
+
+  document.getElementById("roadmapHead").innerHTML = `${icon("trend",12,2)} On the roadmap`;
+  document.getElementById("proRoadmap").innerHTML =
+    PRO_ROADMAP.map(f => `<span>${esc(f)}</span>`).join("");
+
+  document.getElementById("proKey").value = "";
+  proModal.classList.add("open");
+  proScrim.classList.add("open");
+  proModal.setAttribute("aria-hidden","false");
+  setTimeout(() => document.getElementById("proClose").focus(), 30);
+}
+
+function closeProModal(){
+  proModal.classList.remove("open");
+  proScrim.classList.remove("open");
+  proModal.setAttribute("aria-hidden","true");
+  proLastFocus?.focus?.();
+}
+
+proScrim.addEventListener("click", closeProModal);
+document.getElementById("proClose").addEventListener("click", closeProModal);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && proModal.classList.contains("open")) closeProModal();
+});
+document.getElementById("proBuyBtn").addEventListener("click", openCheckout);
+document.getElementById("proKeyBtn").addEventListener("click", () => {
+  activateLicence(document.getElementById("proKey").value, () => {
+    closeProModal();
+    toast("Pro unlocked — templates are available");
+  });
+});
 
 /* ═══════════════════════════  SETTINGS  ═══════════════════════════ */
 const root   = document.documentElement;
@@ -2676,8 +3795,7 @@ const toggle = (name, label, help, on) =>
      <span class="track"><i></i></span>
    </button>`;
 
-/* Running inside the Electron shell? Then the OS can do this properly. */
-const DESKTOP = typeof window !== "undefined" && window.desktop && window.desktop.isDesktop;
+const DESKTOP = IS_DESKTOP;
 let desktopLogin = false;
 
 function startupSection(){
@@ -2709,12 +3827,27 @@ function startupSection(){
   </div>`;
 }
 
+/* Appearance customisation is a Pro feature on the web build only; the
+   desktop app stays fully configurable. Data, backups and the Pro section
+   itself are never gated — nobody should have to pay to export their own
+   habits or to enter a licence key. */
+const GATED_SETTINGS = ["font","titles","accent","glow","density","weekStart","basis","bg","bg-reset"];
+const settingsLocked = () => !IS_DESKTOP && !isPro();
+
+const gateCls   = () => settingsLocked() ? " gated" : "";
+const gateBadge = () => settingsLocked()
+  ? `<span class="gate-badge">${icon("lock",10,2.6)} Pro</span>` : "";
+const gateVeil  = () => settingsLocked()
+  ? `<button class="gate-veil" data-set="gate" type="button"
+       aria-label="Appearance settings are a Pro feature — open upgrade options"></button>` : "";
+
 function renderSettings(){
   const s = state.settings;
 
   body.innerHTML = `
-  <div class="set-group">
-    <div class="set-legend">${icon("type",13,2)} Typeface</div>
+  <div class="set-group${gateCls()}">
+    <div class="set-legend">${icon("type",13,2)} Typeface${gateBadge()}</div>
+    <div class="gate-content">
     <div class="set-row">
       <label for="fontSel">Interface font</label>
       <select class="set-select" id="fontSel" data-set="font">
@@ -2727,10 +3860,12 @@ function renderSettings(){
       <span class="set-name">Panel titles</span>
       ${seg("titles", Object.entries(TITLES).map(([k,v]) => [k, v.label]), s.titles)}
     </div>
+    </div>${gateVeil()}
   </div>
 
-  <div class="set-group">
-    <div class="set-legend">${icon("palette",13,2)} Colour</div>
+  <div class="set-group${gateCls()}">
+    <div class="set-legend">${icon("palette",13,2)} Colour${gateBadge()}</div>
+    <div class="gate-content">
     <div class="set-row">
       <span class="set-name">Accent</span>
       <div class="swatches">
@@ -2741,10 +3876,12 @@ function renderSettings(){
       <span class="set-help">Completion rates keep their own teal / amber / coral scale so “on track” never changes meaning.</span>
     </div>
     ${toggle("glow", "Glow effects", "Neon bloom on lines, bars and ticked boxes.", s.glow)}
+    </div>${gateVeil()}
   </div>
 
-  <div class="set-group">
-    <div class="set-legend">${icon("monitor",13,2)} App background</div>
+  <div class="set-group${gateCls()}">
+    <div class="set-legend">${icon("monitor",13,2)} App background${gateBadge()}</div>
+    <div class="gate-content">
     <div class="set-row">
       <span class="set-name">Theme</span>
       <div class="cswatches">
@@ -2769,10 +3906,12 @@ function renderSettings(){
       </div>
       <span class="set-help">Very light grounds flip the text to dark automatically, though the charts are tuned for dark themes.</span>
     </div>
+    </div>${gateVeil()}
   </div>
 
-  <div class="set-group">
-    <div class="set-legend">${icon("sliders",13,2)} Layout</div>
+  <div class="set-group${gateCls()}">
+    <div class="set-legend">${icon("sliders",13,2)} Layout${gateBadge()}</div>
+    <div class="gate-content">
     <div class="set-row">
       <span class="set-name">Grid density</span>
       ${seg("density", Object.entries(DENSITY).map(([k,v]) => [k, v.label]), s.density)}
@@ -2789,6 +3928,37 @@ function renderSettings(){
         ? "A perfect record reads 100% on the 3rd — percentages divide by days elapsed."
         : "Percentages divide by every day in the month, so they climb as the month fills in."}</span>
     </div>
+    </div>${gateVeil()}
+  </div>
+
+  <div class="set-group">
+    <div class="set-legend">${icon("spark",13,2)} Quiet Progress Pro</div>
+    <div class="pro-status${isPro() ? " on" : ""}">
+      <span class="dot"></span>
+      <div style="flex:1;min-width:0">
+        <b>${isPro() ? "Pro unlocked" : "Free version"}</b>
+        <span>${isPro()
+          ? `${s.pro.source === "purchase" ? "Activated by purchase" : "Activated by licence key"}${s.pro.verified ? " · verified" : " · not verified from this device"}`
+          : "Everything currently works; Pro is not gating any feature yet."}</span>
+      </div>
+    </div>
+    ${isPro()
+      ? `<div class="set-actions"><button class="minibtn danger" data-set="pro-remove">${icon("undo",13,1.9)} Remove Pro from this device</button></div>`
+      : `<div class="set-actions"><button class="minibtn" data-set="pro-buy">${icon("spark",13,1.9)} Open checkout</button></div>
+         <div class="set-row">
+           <span class="set-name">Have a licence key?</span>
+           <div class="licence-row">
+             <input id="licenceKey" type="text" maxlength="80" spellcheck="false"
+                    placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" aria-label="Licence key"/>
+             <button class="minibtn" id="licenceBtn" data-set="pro-activate">Activate</button>
+           </div>
+           <span class="set-help">Checked against Lemon Squeezy when this device is online.</span>
+         </div>`}
+    <span class="set-help">Pro status is stored in this browser only. It is a convenience, not a copy-protection mechanism — anyone with developer tools can change it.</span>
+
+    <div class="roadmap-head">${icon("trend",12,2)} On the roadmap</div>
+    <span class="roadmap-note">Planned for future releases — not part of Pro today.</span>
+    <div class="roadmap">${PRO_ROADMAP.map(f => `<span>${esc(f)}</span>`).join("")}</div>
   </div>
 
   <div class="set-group">
@@ -2839,6 +4009,7 @@ document.getElementById("importFile").addEventListener("change", e => {
 
 body.addEventListener("change", e => {
   if (e.target.id === "fontSel"){
+    if (settingsLocked()){ e.target.value = state.settings.font; openProModal("settings"); return; }
     state.settings.font = e.target.value;
     save(); applySettings();
   }
@@ -2846,6 +4017,11 @@ body.addEventListener("change", e => {
 
 /* Background colour inputs live in the drawer and apply as you drag. */
 body.addEventListener("input", e => {
+  if ((e.target.id === "bgPick" || e.target.id === "bgHex") && settingsLocked()){
+    openProModal("settings");
+    renderSettings();          // snap the field back to the stored value
+    return;
+  }
   if (e.target.id === "bgPick"){
     state.settings.bg = normHex(e.target.value, BG_DEFAULT);
     document.getElementById("bgHex").value = state.settings.bg;
@@ -2876,6 +4052,7 @@ function syncBgSwatches(){
 body.addEventListener("click", e => {
   const swatch = e.target.closest("[data-bg]");
   if (swatch){
+    if (settingsLocked()){ openProModal("settings"); return; }
     state.settings.bg = swatch.dataset.bg;
     save(); applySettings(); renderSettings();
     return;
@@ -2884,6 +4061,11 @@ body.addEventListener("click", e => {
   const el = e.target.closest("[data-set]");
   if (!el || el.tagName === "SELECT") return;
   const key = el.dataset.set, val = el.dataset.val;
+
+  if (key === "gate"){ openProModal("settings"); return; }
+  // Second line of defence: the overlay already blocks these, but never
+  // trust the overlay alone.
+  if (settingsLocked() && GATED_SETTINGS.includes(key)){ openProModal("settings"); return; }
 
   switch (key){
     case "titles": case "accent": case "density":
@@ -2905,6 +4087,19 @@ body.addEventListener("click", e => {
     case "basis":
       state.settings.basis = val;
       save(); render(); renderSettings();
+      break;
+
+    case "pro-buy":
+      openCheckout({ preventDefault(){} });
+      if (!(window.LemonSqueezy && window.LemonSqueezy.Url)) window.open(CHECKOUT_URL, "_blank", "noopener");
+      break;
+
+    case "pro-activate":
+      activateLicence(document.getElementById("licenceKey").value);
+      break;
+
+    case "pro-remove":
+      if (confirm("Remove Pro from this device? Your habit data is untouched.")) setPro(false);
       break;
 
     case "bg-reset":
@@ -3050,6 +4245,29 @@ view.addEventListener("click", e => {
       openPicker(el.dataset.day);
       break;
     }
+    case "go":
+      state.ui.tab = el.dataset.tab;
+      save(); render();
+      break;
+
+    case "mile-dismiss":
+      state.seenMilestones[el.dataset.id] = true;
+      save(); render();
+      break;
+
+    case "onboard-open": openOnboarding(); break;
+    case "pro-open":     openProModal("countdown"); break;
+
+    case "focus-newhabit":
+      state.ui.tab = "habits"; render();
+      setTimeout(() => document.getElementById("newHabit")?.focus(), 40);
+      break;
+
+    case "focus-exam":
+      state.ui.tab = "planner"; render();
+      setTimeout(() => document.getElementById("exName")?.focus(), 40);
+      break;
+
     case "exam-preset": examApplyPreset(el.dataset.id); break;
     case "exam-start":  examStart(); break;
     case "exam-pause":  examPause(); break;
@@ -3069,11 +4287,19 @@ view.addEventListener("click", e => {
     }
 
     case "cd-add": {
+      if (!canAddCountdown()){ openProModal("countdown"); break; }
       openCdModal(null);
       break;
     }
     case "cd-edit": {
       openCdModal(el.dataset.id);
+      break;
+    }
+    case "cd-preset": {
+      const p = COUNTDOWN_PRESETS.find(x => x.id === el.dataset.id);
+      if (!p) break;
+      if (!isPro()){ openProModal(); break; }
+      openCdModal(null, p);
       break;
     }
     case "cd-bell": {
@@ -3210,6 +4436,22 @@ if (DESKTOP){
       if (drawer.classList.contains("open")) renderSettings();
     })
     .catch(() => {});
+}
+
+paintPro();
+initLemonSqueezy();
+document.getElementById("proSlot").addEventListener("click", e => {
+  if (e.target.closest("#upgradeBtn")) openCheckout(e);
+});
+
+state.ui.tab = "home";   // every fresh load starts on the dashboard
+
+// First run on the web build: offer a starting point. The web default is a
+// generic fitness set, so the picker is offered even though habits exist —
+// gating it on an empty list would have silently retired the feature.
+// The desktop build is left exactly as it was: no picker.
+if (!IS_DESKTOP && !state.settings.onboarded){
+  setTimeout(openOnboarding, 400);
 }
 
 reanchorExam();   // rebuild the perf clock from the stored wall-clock anchor
