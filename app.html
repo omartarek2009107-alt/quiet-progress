@@ -1545,6 +1545,19 @@ const cardStyle = (hex, past) => {
 const CHECKOUT_URL = "https://quietprogressapp.lemonsqueezy.com/checkout/buy/a1368c6d-9c3f-41ab-8cd4-ca9134eb9f38";
 const LS_ACTIVATE  = "https://api.lemonsqueezy.com/v1/licenses/activate";
 
+/* Complimentary keys that unlock Pro without contacting Lemon Squeezy.
+   These ship inside the client bundle, so treat them as public: anyone who
+   opens the page source can read them, and revoking one means releasing a
+   new build. Fine for handing Pro to yourself or a friend; not a substitute
+   for real licences on anything you need to be able to withdraw. */
+const MASTER_KEYS = [
+  "OMAR-PRO-2026",
+  "QUIET-PROGRESS-VIP",
+  "FRIEND-PRO-KEY"
+];
+const normKey    = k => String(k || "").trim().toUpperCase();
+const isMasterKey = k => MASTER_KEYS.some(m => m.toUpperCase() === normKey(k));
+
 const DEFAULT_PRO = { active:false, source:null, key:null, since:null, verified:false };
 
 /* Planned, not shipped. Always rendered under a heading that says so —
@@ -3490,6 +3503,15 @@ function openCheckout(e){
    what the app actually knows. */
 async function activateLicence(key, onSuccess){
   const clean = String(key || "").trim();
+
+  // Complimentary keys short-circuit before any network call, and before the
+  // length guard so a short one added later still works.
+  if (isMasterKey(clean)){
+    setPro(true, "master", { key: clean, verified: true });
+    if (onSuccess) onSuccess(); else toast("Pro unlocked");
+    return;
+  }
+
   if (clean.length < 8){ toast("That licence key looks too short"); return; }
 
   const btn = document.getElementById("licenceBtn");
@@ -3938,8 +3960,10 @@ function renderSettings(){
       <div style="flex:1;min-width:0">
         <b>${isPro() ? "Pro unlocked" : "Free version"}</b>
         <span>${isPro()
-          ? `${s.pro.source === "purchase" ? "Activated by purchase" : "Activated by licence key"}${s.pro.verified ? " · verified" : " · not verified from this device"}`
-          : "Everything currently works; Pro is not gating any feature yet."}</span>
+          ? s.pro.source === "master"   ? "Activated with a complimentary key"
+          : s.pro.source === "purchase" ? `Activated by purchase${s.pro.verified ? " · verified" : ""}`
+          : `Activated by licence key${s.pro.verified ? " · verified" : " · not verified from this device"}`
+          : "Unlocks appearance settings, unlimited countdowns and ready-made templates."}</span>
       </div>
     </div>
     ${isPro()
