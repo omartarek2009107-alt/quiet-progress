@@ -1,0 +1,8 @@
+node_modules/
+out/
+npm-debug.log*
+.DS_Store
+
+# Separate project that happens to live in this folder — not part of
+# Quiet Progress and deliberately kept out of this repo.
+NetMonitor/

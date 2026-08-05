@@ -1,0 +1,32 @@
+{
+  "name": "quiet-progress-tracker",
+  "productName": "Quiet Progress",
+  "version": "1.0.0",
+  "description": "Offline habit and study tracker with an exam planner. All data stays on this device.",
+  "author": "Quiet Progress",
+  "license": "MIT",
+  "private": true,
+  "main": "desktop/main.js",
+  "scripts": {
+    "build:html": "node desktop/build-index.js",
+    "build:icon": "electron assets/make-icon.js",
+    "prestart:desktop": "node desktop/build-index.js",
+    "start:desktop": "electron-forge start",
+    "prestart": "node desktop/build-index.js",
+    "start": "electron-forge start",
+    "premake": "node desktop/build-index.js",
+    "make": "electron-forge make",
+    "prepackage": "node desktop/build-index.js",
+    "package": "electron-forge package"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "electron": "^43.2.0"
+  },
+  "allowScripts": {
+    "electron@43.2.0": true,
+    "electron-winstaller@5.4.4": true
+  }
+}

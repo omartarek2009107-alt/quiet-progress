@@ -1,0 +1,3237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="color-scheme" content="dark"/>
+<meta name="description" content="Offline habit and study tracker. Everything stays on this device."/>
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg"/>
+<link rel="icon" type="image/png" sizes="256x256" href="assets/icon.png"/>
+</head>
+<body>
+<!-- Generated from app.html by desktop/build-index.js — edit app.html, not this file. -->
+
+<title>Quiet Progress — Habit &amp; Study Tracker</title>
+
+<style>
+/* ─────────────────────────────  TOKENS  ───────────────────────────── */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"]{
+  /* This dashboard commits to a single dark visual world by design; the
+     tokens are pinned so a light-theme viewer never gets a half-lit page. */
+  --ground:      #080c15;
+  --ground-2:    #0b1220;
+  --glow-1:      #16233c;   /* ambient washes; recomputed per background theme */
+  --glow-2:      #1a1730;
+  --panel:       #141d2f;
+  --panel-2:     #1b2740;
+  --cell:        #131c2d;
+  --line:        #243149;
+  --line-soft:   #1a2336;
+
+  --text:        #e7edf8;
+  --text-dim:    #8d9cb6;
+  --text-faint:  #5b6a83;
+
+  --teal:        #2ee6c5;
+  --cyan:        #38bdf8;
+  --amber:       #f7c948;
+  --coral:       #ff7a90;
+  --violet:      #8b7dff;
+
+  --w1: #8b7dff;
+  --w2: #38bdf8;
+  --w3: #2ee6c5;
+  --w4: #ff7a90;
+  --w5: #f7c948;
+
+  /* Semantic rate ramp — deliberately independent of --accent so recolouring
+     the app never changes what "on track" vs "falling behind" looks like. */
+  --good: var(--teal);
+  --mid:  var(--amber);
+  --low:  var(--coral);
+
+  /* Set from Settings → Accent. */
+  --accent:   #2ee6c5;
+  --accent-2: #38bdf8;
+
+  /* Set from Settings → Density. */
+  --cell-w: 31px;
+  --row-h:  38px;
+  --box:    19px;
+
+  --radius:  14px;
+  --radius-s: 8px;
+
+  --font-ui:   "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --font-num:  "Cascadia Mono","JetBrains Mono",ui-monospace,Consolas,"SF Mono",monospace;
+  --font-hand: "Segoe Script","Ink Free","Bradley Hand","Snell Roundhand","Brush Script MT",cursive;
+  --font-title: var(--font-hand);
+
+  color-scheme: dark;
+}
+
+/* If a custom ground is light, the few deliberately near-black fills would
+   strand as dark holes. Re-tone them from the surface ramp instead. */
+:root.light-ground .bar-track,
+:root.light-ground .rate-bar,
+:root.light-ground .abar-track{ background:color-mix(in srgb, var(--text) 12%, transparent); }
+:root.light-ground .tip,
+:root.light-ground .toast{ background:var(--panel); }
+:root.light-ground .box svg,
+:root.light-ground .task-check svg{ color:#f6f9ff; }
+
+/* Settings → Glow: off strips every bloom in one place. */
+:root.no-glow .bar-fill,
+:root.no-glow .box.on,
+:root.no-glow .abar-fill,
+:root.no-glow .btn:hover{ box-shadow:none !important; }
+:root.no-glow #trendLine{ filter:none !important; }
+:root.no-glow #ringArc{ filter:none !important; }
+
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+
+body{
+  /* Kept as longhands on purpose: a var() sitting in the colour slot of the
+     `background` shorthand does not re-resolve when the variable changes,
+     so the ground would stay frozen at its initial value. The two ambient
+     washes are derived in applyBackground(), letting Pure OLED stay black. */
+  background-color: var(--ground);
+  background-image:
+    radial-gradient(1100px 620px at 12% -12%, var(--glow-1) 0%, transparent 62%),
+    radial-gradient(900px 520px at 92% 0%, var(--glow-2) 0%, transparent 58%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,input,select{ font:inherit; color:inherit; }
+button{ background:none; border:none; cursor:pointer; }
+:focus-visible{ outline:2px solid var(--accent-2); outline-offset:2px; border-radius:4px; }
+
+.num{ font-family:var(--font-num); font-variant-numeric:tabular-nums; }
+
+/* ─────────────────────────────  SHELL  ───────────────────────────── */
+.shell{ max-width:1560px; margin:0 auto; padding:22px 22px 64px; }
+
+.topbar{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  padding-bottom:18px; margin-bottom:20px;
+  border-bottom:1px solid var(--line-soft);
+}
+.brand{ display:flex; align-items:center; gap:12px; margin-right:auto; }
+.brand-mark{
+  width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
+  background:linear-gradient(150deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent-2) 22%, transparent));
+  border:1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  color:var(--accent);
+}
+.brand-name{ font-size:15px; font-weight:650; letter-spacing:-.01em; }
+.brand-sub{
+  font-family:var(--font-num); font-size:10.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+
+.tabs{
+  display:flex; gap:4px; padding:4px;
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+}
+.tab{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 15px; border-radius:9px; font-size:13.5px; font-weight:550;
+  color:var(--text-dim); transition:background .16s, color .16s;
+}
+.tab:hover{ color:var(--text); background:rgba(255,255,255,.04); }
+.tab[aria-selected="true"]{ background:var(--panel-2); color:var(--text); box-shadow:inset 0 0 0 1px var(--line); }
+.tab[aria-selected="true"] svg{ color:var(--accent); }
+
+/* ─────────────────────────────  PANEL  ───────────────────────────── */
+.panel{
+  background:linear-gradient(180deg, rgba(255,255,255,.022), transparent 120px), var(--panel);
+  border:1px solid var(--line); border-radius:var(--radius);
+}
+.panel-head{
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding:16px 20px 12px;
+}
+.panel-title{ font-family:var(--font-title); font-size:25px; font-weight:400; line-height:1; color:#f2e9d8; }
+:root[data-titles="sans"] .panel-title,
+:root[data-titles="sans"] .month-label{ font-weight:640; letter-spacing:-.02em; color:var(--text); }
+:root[data-titles="sans"] .panel-title{ font-size:19px; }
+:root[data-titles="sans"] .month-label{ font-size:27px; }
+:root[data-titles="serif"] .panel-title{ font-size:22px; }
+.eyebrow{
+  font-family:var(--font-num); font-size:10px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.panel-head .spacer{ margin-left:auto; }
+
+/* ─────────────────────────  MONTH + KPI BAND  ────────────────────── */
+.band{ display:grid; grid-template-columns: minmax(250px,1fr) 2.2fr; gap:14px; margin-bottom:16px; }
+
+.monthcard{
+  padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between; gap:14px;
+}
+.month-nav{ display:flex; align-items:center; gap:10px; }
+.month-nav button{
+  width:30px; height:30px; border-radius:8px; display:grid; place-items:center;
+  color:var(--text-dim); border:1px solid var(--line); background:var(--panel-2);
+  transition:color .15s, border-color .15s;
+}
+.month-nav button:hover{ color:var(--accent); border-color:color-mix(in srgb, var(--accent) 40%, transparent); }
+.month-label{ font-family:var(--font-title); font-size:32px; line-height:1; color:#f2e9d8; flex:1; }
+.month-sub{ font-family:var(--font-num); font-size:11px; color:var(--text-faint); letter-spacing:.05em; }
+.month-tools{ display:flex; gap:8px; }
+.minibtn{
+  display:flex; align-items:center; gap:6px; padding:6px 11px; border-radius:8px;
+  border:1px solid var(--line); background:var(--panel-2);
+  font-size:12px; color:var(--text-dim); transition:color .15s, border-color .15s;
+}
+.minibtn:hover{ color:var(--text); border-color:var(--text-faint); }
+
+.kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.kpi{ padding:16px 18px; display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden; }
+.kpi::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:2px;
+  background:linear-gradient(90deg, var(--kpi-accent), transparent 78%); opacity:.75;
+}
+.kpi-label{
+  display:flex; align-items:center; gap:7px;
+  font-family:var(--font-num); font-size:10px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.kpi-label svg{ color:var(--kpi-accent); }
+.kpi-value{
+  font-family:var(--font-num); font-size:34px; line-height:1; font-weight:600;
+  letter-spacing:-.02em; color:var(--kpi-accent);
+}
+.kpi-value small{ font-size:15px; color:var(--text-faint); font-weight:400; margin-left:3px; }
+.kpi-foot{ font-size:12px; color:var(--text-dim); }
+
+.bar-track{ height:7px; border-radius:99px; background:#0c1424; border:1px solid var(--line-soft); overflow:hidden; }
+.bar-fill{
+  height:100%; border-radius:99px;
+  background:linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow:0 0 14px color-mix(in srgb, var(--accent) 45%, transparent);
+  transition:width .45s cubic-bezier(.22,1,.36,1);
+}
+
+/* ─────────────────────────────  GRID  ───────────────────────────── */
+.grid-scroll{ overflow-x:auto; overflow-y:visible; padding:0 0 6px; }
+table.grid{ border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; }
+table.grid th, table.grid td{ padding:0; }
+
+/* No fixed width: this column is the only `auto` one, so it soaks up any slack
+   when the table is narrower than the panel. That keeps the day columns at
+   exactly the density the user picked instead of stretching them. */
+.col-habit{ min-width:216px; }
+.col-rate{ width:112px; min-width:112px; }
+
+.gh-week{
+  height:26px; text-align:center; font-family:var(--font-num);
+  font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--wk); background:var(--wk-bg);
+  border-left:1px solid var(--line); border-bottom:1px solid var(--line-soft);
+}
+.gh-day{
+  width:var(--cell-w); min-width:var(--cell-w); height:var(--row-h); vertical-align:middle;
+  border-bottom:1px solid var(--line); border-left:1px solid var(--line-soft);
+  background:var(--ground-2);
+}
+.gh-day .dow{
+  font-family:var(--font-num); font-size:8.5px; color:var(--text-faint);
+  text-transform:uppercase; letter-spacing:.04em; display:block; line-height:1.2;
+}
+.gh-day .dnum{ font-family:var(--font-num); font-size:11.5px; color:var(--text-dim); display:block; line-height:1.3; }
+.gh-day.is-today{ background:rgba(46,230,197,.1); }
+.gh-day.is-today .dnum{ color:var(--teal); font-weight:600; }
+.gh-day.is-weekend .dow{ color:rgba(255,122,144,.65); }
+
+.sticky-l{ position:sticky; left:0; z-index:3; background:var(--panel); }
+.sticky-r{ position:sticky; right:0; z-index:3; background:var(--panel); box-shadow:-14px 0 18px -14px #000; }
+thead .sticky-l, thead .sticky-r{ z-index:5; }
+
+.gh-corner{
+  height:var(--row-h); text-align:left; padding:0 16px !important;
+  font-family:var(--font-num); font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--text-faint);
+  border-bottom:1px solid var(--line);
+}
+.gh-corner.right{ text-align:right; padding:0 16px !important; }
+
+tr.habit-row:hover td{ background-color:rgba(255,255,255,.022); }
+tr.habit-row:hover .sticky-l, tr.habit-row:hover .sticky-r{ background-color:#182236; }
+
+.habit-cell{
+  display:flex; align-items:center; gap:10px; height:var(--row-h); padding:0 12px 0 16px;
+  border-bottom:1px solid var(--line-soft);
+}
+.habit-icon{ font-size:15px; width:19px; text-align:center; flex:none; }
+.habit-name{
+  font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;
+}
+.habit-del{
+  opacity:0; flex:none; color:var(--text-faint); display:grid; place-items:center;
+  width:22px; height:22px; border-radius:6px; transition:opacity .15s, color .15s, background .15s;
+}
+tr.habit-row:hover .habit-del{ opacity:1; }
+.habit-del:hover{ color:var(--coral); background:rgba(255,122,144,.12); }
+
+td.day{
+  border-bottom:1px solid var(--line-soft); border-left:1px solid var(--line-soft);
+  background:var(--cell); text-align:center; height:var(--row-h);
+}
+td.day.is-today{ background:rgba(46,230,197,.055); }
+td.day.is-future .box{ opacity:.42; }
+
+.box{
+  width:var(--box); height:var(--box); margin:0 auto; border-radius:5px; display:grid; place-items:center;
+  border:1.5px solid var(--wk-line); background:transparent;
+  transition:background .14s, box-shadow .14s, transform .1s, border-color .14s;
+}
+.box:hover{ border-color:var(--wk); transform:scale(1.14); }
+.box:active{ transform:scale(.94); }
+.box svg{ opacity:0; color:#06111b; transition:opacity .12s; }
+.box.on{ background:var(--wk); border-color:var(--wk); box-shadow:0 0 11px -1px var(--wk-glow); }
+.box.on svg{ opacity:1; }
+
+.rate-cell{
+  display:flex; align-items:center; gap:9px; height:var(--row-h); padding:0 16px;
+  border-bottom:1px solid var(--line-soft);
+}
+.rate-bar{ flex:1; height:5px; border-radius:99px; background:#0c1424; overflow:hidden; }
+.rate-bar span{ display:block; height:100%; border-radius:99px; background:var(--c); }
+.rate-num{ font-family:var(--font-num); font-size:11.5px; width:34px; text-align:right; color:var(--c); }
+
+tr.totals td{ background:var(--ground-2); border-top:1px solid var(--line); height:32px; }
+tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
+.totals-label{
+  display:flex; align-items:center; height:32px; padding:0 16px;
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.totals-label.right{ justify-content:flex-end; }
+.day-total{
+  font-family:var(--font-num); font-size:10.5px; text-align:center;
+  border-left:1px solid var(--line-soft); color:var(--c);
+}
+
+.addhabit{
+  display:flex; gap:8px; align-items:center; padding:12px 16px;
+  border-top:1px solid var(--line-soft);
+}
+.addhabit input{
+  flex:1; max-width:320px; padding:8px 12px; border-radius:var(--radius-s);
+  background:var(--ground-2); border:1px solid var(--line); font-size:13px;
+}
+.addhabit input::placeholder{ color:var(--text-faint); }
+.addhabit input:focus{ border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none; }
+
+/* ────────────────────────────  CHARTS  ──────────────────────────── */
+.analytics{ display:grid; grid-template-columns:7fr 5fr; gap:16px; margin-top:16px; }
+.chart-wrap{ position:relative; padding:4px 12px 16px; }
+.chart-wrap svg{ display:block; width:100%; height:auto; overflow:visible; }
+.axis-t{ font-family:var(--font-num); font-size:9.5px; fill:var(--text-faint); }
+.grid-l{ stroke:var(--line-soft); stroke-width:1; }
+.hover-band{ fill:transparent; cursor:crosshair; }
+.hover-band:hover{ fill:rgba(255,255,255,.03); }
+
+.tip{
+  position:absolute; pointer-events:none; opacity:0; transform:translate(-50%,-118%);
+  background:#0a1120; border:1px solid var(--line); border-radius:9px;
+  padding:7px 11px; white-space:nowrap; z-index:9;
+  box-shadow:0 10px 26px rgba(0,0,0,.6); transition:opacity .12s;
+}
+.tip b{ font-family:var(--font-num); font-size:14px; color:var(--accent); font-weight:600; }
+.tip span{ display:block; font-size:10.5px; color:var(--text-faint); letter-spacing:.05em; }
+
+.abars{ display:flex; flex-direction:column; gap:9px; padding:6px 20px 20px; }
+.abar{ display:grid; grid-template-columns:150px 1fr 44px; align-items:center; gap:12px; }
+.abar-name{
+  font-size:12.5px; color:var(--text-dim); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.abar-track{ height:15px; border-radius:4px; background:#0c1424; border:1px solid var(--line-soft); overflow:hidden; }
+.abar-fill{
+  height:100%; border-radius:3px; background:var(--c);
+  box-shadow:0 0 12px -3px var(--c);
+  transition:width .5s cubic-bezier(.22,1,.36,1);
+}
+.abar-val{ font-family:var(--font-num); font-size:12px; text-align:right; color:var(--c); }
+
+.empty{
+  display:grid; place-items:center; gap:8px; min-height:170px;
+  color:var(--text-faint); font-size:13px; text-align:center; padding:20px;
+}
+
+/* ───────────────────────────  PLANNER  ─────────────────────────── */
+.planner-top{ display:grid; grid-template-columns: 1.35fr 1fr; gap:16px; margin-bottom:16px; }
+
+.form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:4px 20px 20px; }
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field.wide{ grid-column:1 / -1; }
+.field label{
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.field input, .field select{
+  padding:9px 12px; border-radius:var(--radius-s);
+  background:var(--ground-2); border:1px solid var(--line); font-size:13.5px; width:100%;
+}
+.field input:focus, .field select:focus{ border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none; }
+.btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 16px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600;
+  background:linear-gradient(140deg,
+    color-mix(in srgb, var(--accent) 16%, transparent),
+    color-mix(in srgb, var(--accent-2) 16%, transparent));
+  border:1px solid color-mix(in srgb, var(--accent) 42%, transparent); color:var(--accent);
+  transition:background .16s, box-shadow .16s;
+}
+.btn:hover{
+  background:linear-gradient(140deg,
+    color-mix(in srgb, var(--accent) 26%, transparent),
+    color-mix(in srgb, var(--accent-2) 26%, transparent));
+  box-shadow:0 0 18px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.ring-card{ display:flex; align-items:center; gap:22px; padding:4px 22px 22px; }
+.ring{ flex:none; position:relative; width:132px; height:132px; }
+.ring svg{ transform:rotate(-90deg); }
+.ring-mid{
+  position:absolute; inset:0; display:grid; place-content:center; text-align:center; gap:2px;
+}
+.ring-pct{ font-family:var(--font-num); font-size:29px; font-weight:600; color:var(--accent); line-height:1; }
+.ring-cap{ font-family:var(--font-num); font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--text-faint); }
+.ring-stats{ display:flex; flex-direction:column; gap:9px; flex:1; min-width:0; }
+.stat-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12.5px; color:var(--text-dim); }
+.stat-row b{ font-family:var(--font-num); font-size:15px; font-weight:600; color:var(--text); }
+.stat-row .dot{ width:7px; height:7px; border-radius:99px; background:var(--c); flex:none; margin-right:7px; }
+
+.exam-list{ display:flex; flex-direction:column; gap:8px; padding:2px 20px 20px; }
+.exam-chip{
+  display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:12px;
+  padding:11px 13px; border-radius:10px;
+  background:var(--panel-2); border:1px solid var(--line); border-left:3px solid var(--c);
+}
+.exam-name{ font-size:13.5px; font-weight:550; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.exam-meta{ font-family:var(--font-num); font-size:10.5px; color:var(--text-faint); letter-spacing:.04em; }
+.pri-tag{
+  font-family:var(--font-num); font-size:9px; letter-spacing:.13em; text-transform:uppercase;
+  padding:3px 8px; border-radius:99px; color:var(--c);
+  background:color-mix(in srgb, var(--c) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--c) 34%, transparent);
+}
+.icon-btn{
+  width:28px; height:28px; border-radius:7px; display:grid; place-items:center;
+  color:var(--text-faint); border:1px solid transparent; transition:color .15s, background .15s, border-color .15s;
+}
+.icon-btn:hover{
+  color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color:color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.icon-btn.danger:hover{ color:var(--coral); background:rgba(255,122,144,.1); border-color:rgba(255,122,144,.28); }
+
+.week-nav{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.week-range{ font-family:var(--font-num); font-size:12px; color:var(--text-dim); min-width:152px; text-align:center; }
+
+.board{ display:grid; grid-template-columns:repeat(7,minmax(168px,1fr)); gap:10px; padding:4px 20px 20px; }
+.day-col{
+  display:flex; flex-direction:column; gap:8px; min-height:190px;
+  padding:10px; border-radius:11px;
+  background:var(--ground-2); border:1px solid var(--line-soft);
+  transition:border-color .16s, background .16s;
+}
+.day-col.is-today{
+  border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+  background:color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.day-col.drag-over{
+  border-color:var(--accent-2);
+  background:color-mix(in srgb, var(--accent-2) 9%, transparent);
+}
+.day-head{ display:flex; align-items:baseline; gap:7px; padding:1px 2px 6px; border-bottom:1px solid var(--line-soft); }
+.day-dow{ font-size:12.5px; font-weight:650; }
+.day-date{ font-family:var(--font-num); font-size:10px; color:var(--text-faint); }
+.day-count{ font-family:var(--font-num); font-size:10px; margin-left:auto; color:var(--text-faint); }
+.day-count.done{ color:var(--accent); }
+
+.task{
+  display:grid; grid-template-columns:auto 1fr auto; align-items:start; gap:9px;
+  padding:9px 10px; border-radius:9px; cursor:grab;
+  background:var(--panel-2); border:1px solid var(--line); border-left:3px solid var(--c);
+  transition:border-color .15s, opacity .15s, transform .1s;
+}
+.task:hover{ border-color:var(--text-faint); }
+.task.dragging{ opacity:.4; }
+.task.done{ opacity:.5; }
+.task.done .task-title{ text-decoration:line-through; color:var(--text-faint); }
+.task-check{
+  width:17px; height:17px; margin-top:1px; border-radius:5px; flex:none;
+  border:1.5px solid var(--line); display:grid; place-items:center; background:transparent;
+  transition:background .14s, border-color .14s;
+}
+.task-check svg{ opacity:0; color:#06111b; }
+.task.done .task-check{ background:var(--accent); border-color:var(--accent); }
+.task.done .task-check svg{ opacity:1; }
+.task-title{ font-size:12.5px; line-height:1.35; }
+.task-sub{ font-family:var(--font-num); font-size:9.5px; color:var(--text-faint); letter-spacing:.04em; margin-top:2px; }
+.task-del{ opacity:0; color:var(--text-faint); transition:opacity .15s, color .15s; }
+.task:hover .task-del{ opacity:1; }
+.task-del:hover{ color:var(--coral); }
+
+.day-add{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:7px; border-radius:8px; font-size:11.5px; color:var(--text-faint);
+  border:1px dashed var(--line); margin-top:auto;
+  transition:color .15s, border-color .15s;
+}
+.day-add:hover{ color:var(--accent); border-color:color-mix(in srgb, var(--accent) 42%, transparent); }
+
+.picker{
+  display:flex; flex-direction:column; gap:5px; padding:8px;
+  border-radius:9px; background:var(--panel); border:1px solid var(--line);
+}
+.picker-opt{
+  text-align:left; padding:7px 9px; border-radius:7px; font-size:12px;
+  color:var(--text-dim); border-left:3px solid var(--c);
+  background:var(--panel-2); transition:color .15s, background .15s;
+}
+.picker-opt:hover{ color:var(--text); background:#22304d; }
+.picker-none{ font-size:11.5px; color:var(--text-faint); padding:5px 4px; }
+
+.hint{ padding:0 20px 20px; font-size:12.5px; color:var(--text-faint); }
+.foot{
+  margin-top:26px; padding-top:16px; border-top:1px solid var(--line-soft);
+  display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+  font-family:var(--font-num); font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.foot .sep{ opacity:.4; }
+
+/* ────────────────────────  COUNTDOWN TIMERS  ────────────────────
+   These cards keep the reference's light-green treatment rather than the
+   dashboard's dark surfaces — they are meant to read as bright objects
+   sitting on the dark ground, so their palette is deliberately local and
+   is not driven by the accent token. */
+.cd-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+.cd-head .panel-title{ margin-right:auto; }
+
+.cd-grid{
+  display:grid; gap:16px;
+  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  align-items:start;
+}
+
+.cd-card{
+  /* Fallbacks only — every card sets these inline from its chosen fill. */
+  --leaf:      #dcf1e2;
+  --leaf-edge: #bfe3cb;
+  --leaf-deep: #14532d;
+  --leaf-mid:  #3f7a55;
+  --leaf-cell: #f1faf4;
+
+  position:relative; display:flex; flex-direction:column; gap:14px;
+  padding:18px 20px 20px; border-radius:18px;
+  background:var(--leaf); border:1px solid var(--leaf-edge);
+  box-shadow:0 10px 26px -14px rgba(0,0,0,.65);
+  transition:transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s;
+}
+.cd-card:hover{ transform:translateY(-2px); box-shadow:0 16px 34px -14px rgba(0,0,0,.7); }
+
+/* Past cards keep their hue but lose saturation — computed in cardPalette(). */
+.cd-card.is-past{ opacity:.94; }
+
+.cd-top{ display:flex; align-items:flex-start; gap:10px; }
+.cd-name{
+  font-size:19px; font-weight:700; letter-spacing:-.01em; line-height:1.2;
+  color:var(--leaf-deep); flex:1; min-width:0; overflow-wrap:anywhere;
+}
+.cd-when{ font-size:12.5px; color:var(--leaf-mid); margin-top:5px; }
+
+.cd-tools{ display:flex; gap:2px; flex:none; }
+.cd-icon{
+  width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
+  color:var(--leaf-mid); transition:color .15s, background .15s;
+}
+.cd-icon:hover{ color:var(--leaf-deep); background:color-mix(in srgb, var(--leaf-deep) 10%, transparent); }
+.cd-icon.on{
+  color:var(--leaf-deep);
+  background:color-mix(in srgb, var(--leaf-deep) 15%, transparent);
+}
+
+.cd-blocks{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.cd-block{
+  background:var(--leaf-cell); border:1px solid color-mix(in srgb, var(--leaf-deep) 9%, transparent);
+  border-radius:12px; padding:12px 6px 10px; text-align:center;
+}
+.cd-num{
+  font-size:28px; font-weight:700; line-height:1; letter-spacing:-.02em;
+  color:var(--leaf-deep); font-variant-numeric:tabular-nums;
+}
+.cd-unit{ font-size:12px; color:var(--leaf-mid); margin-top:6px; }
+
+.cd-pill{
+  align-self:flex-start; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  font-family:var(--font-num); padding:4px 10px; border-radius:99px;
+  color:var(--leaf-deep);
+  background:color-mix(in srgb, var(--leaf-deep) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--leaf-deep) 30%, transparent);
+}
+
+.cd-empty{
+  grid-column:1 / -1; display:grid; place-items:center; gap:10px;
+  padding:56px 24px; border-radius:18px; text-align:center;
+  border:1px dashed var(--line); background:rgba(255,255,255,.015); color:var(--text-faint);
+}
+.cd-empty b{ color:var(--text); font-size:15px; font-weight:600; }
+
+/* ─────────────────────────  LIVE EXAM MODE  ──────────────────────
+   Read from across a desk mid-exam: oversized numerals, one dominant
+   status colour, and no decoration competing with the clock. */
+.exam-wrap{ display:flex; flex-direction:column; gap:16px; }
+
+.exam-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.exam-head .panel-title{ margin-right:auto; }
+
+.preset-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.preset{
+  display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+  padding:9px 14px; border-radius:10px; text-align:left;
+  background:var(--panel); border:1px solid var(--line);
+  transition:border-color .15s, background .15s, color .15s;
+}
+.preset:hover{ border-color:var(--text-faint); }
+.preset[aria-pressed="true"]{
+  border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+  background:color-mix(in srgb, var(--accent) 12%, var(--panel));
+}
+.preset b{ font-size:13px; font-weight:600; color:var(--text); }
+.preset span{ font-family:var(--font-num); font-size:10.5px; color:var(--text-faint); letter-spacing:.05em; }
+.preset[aria-pressed="true"] b{ color:var(--accent); }
+
+/* The stage owns the status colour; everything inside inherits it. */
+.exam-stage{
+  --phase: var(--accent);
+  position:relative; border-radius:20px; padding:34px 30px 30px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--phase) 7%, var(--panel)), var(--panel));
+  border:2px solid color-mix(in srgb, var(--phase) 46%, transparent);
+  box-shadow:0 0 40px -22px var(--phase);
+  transition:border-color .4s, box-shadow .4s, background .4s;
+  display:flex; flex-direction:column; gap:22px; align-items:center;
+}
+.exam-stage[data-phase="warn"]  { --phase: var(--amber); }
+.exam-stage[data-phase="danger"]{ --phase: var(--coral); animation:examPulse 1.15s ease-in-out infinite; }
+.exam-stage[data-phase="done"]  { --phase: var(--coral); }
+
+@keyframes examPulse{
+  0%,100%{ border-color:color-mix(in srgb, var(--phase) 40%, transparent); box-shadow:0 0 40px -24px var(--phase); }
+  50%    { border-color:var(--phase);                                      box-shadow:0 0 66px -10px var(--phase); }
+}
+
+.exam-title{
+  font-size:17px; font-weight:600; letter-spacing:-.01em; color:var(--text); text-align:center;
+}
+.exam-state{
+  font-family:var(--font-num); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--phase); margin-top:5px; text-align:center;
+}
+
+.exam-clock{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums;
+  font-size:clamp(58px, 13vw, 148px); font-weight:700; line-height:.92;
+  letter-spacing:-.03em; color:var(--phase); text-align:center;
+  text-shadow:0 0 46px color-mix(in srgb, var(--phase) 30%, transparent);
+}
+:root.no-glow .exam-clock{ text-shadow:none; }
+
+.exam-bar{
+  width:100%; height:12px; border-radius:99px; overflow:hidden;
+  background:color-mix(in srgb, var(--text) 10%, transparent);
+  border:1px solid var(--line);
+}
+.exam-fill{
+  height:100%; border-radius:99px; background:var(--phase);
+  box-shadow:0 0 16px -3px var(--phase);
+  transition:width .3s linear, background .4s;
+}
+:root.no-glow .exam-fill{ box-shadow:none; }
+
+.exam-meta{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));
+  gap:10px; width:100%;
+}
+.exam-stat{
+  background:var(--ground-2); border:1px solid var(--line-soft);
+  border-radius:12px; padding:11px 13px; text-align:center;
+}
+.exam-stat b{
+  display:block; font-family:var(--font-num); font-size:17px; font-weight:600;
+  color:var(--text); font-variant-numeric:tabular-nums;
+}
+.exam-stat span{
+  display:block; margin-top:3px; font-family:var(--font-num); font-size:9.5px;
+  letter-spacing:.15em; text-transform:uppercase; color:var(--text-faint);
+}
+
+.exam-controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.exam-btn{
+  display:flex; align-items:center; gap:9px; padding:13px 26px; border-radius:12px;
+  font-size:15px; font-weight:650; letter-spacing:-.01em;
+  border:1px solid var(--line); background:var(--panel-2); color:var(--text);
+  transition:background .15s, border-color .15s, color .15s, transform .1s;
+}
+.exam-btn:hover{ border-color:var(--text-faint); }
+.exam-btn:active{ transform:scale(.97); }
+.exam-btn.primary{
+  background:linear-gradient(140deg,
+    color-mix(in srgb, var(--phase) 24%, transparent),
+    color-mix(in srgb, var(--phase) 12%, transparent));
+  border-color:color-mix(in srgb, var(--phase) 55%, transparent);
+  color:var(--phase);
+}
+.exam-btn.primary:hover{ background:color-mix(in srgb, var(--phase) 30%, transparent); }
+.exam-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.custom-exam{
+  display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;
+  padding:14px 16px; border-radius:12px;
+  background:var(--ground-2); border:1px solid var(--line-soft);
+}
+.custom-exam .field{ flex:1 1 160px; gap:5px; }
+.custom-exam input{
+  padding:9px 12px; border-radius:8px; width:100%;
+  background:var(--panel); border:1px solid var(--line); font-size:13.5px;
+}
+.custom-exam input:focus{ border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none; }
+
+.voice-row{
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  padding:13px 16px; border-radius:12px;
+  background:var(--panel); border:1px solid var(--line);
+}
+.voice-row .set-name{ flex:1; min-width:150px; }
+.cue-list{ display:flex; gap:7px; flex-wrap:wrap; }
+.cue{
+  font-family:var(--font-num); font-size:10px; letter-spacing:.08em;
+  padding:4px 9px; border-radius:99px;
+  border:1px solid var(--line); color:var(--text-faint); background:var(--ground-2);
+}
+.cue.done{ color:var(--accent); border-color:color-mix(in srgb, var(--accent) 40%, transparent); }
+.cue.next{ color:var(--amber); border-color:color-mix(in srgb, var(--amber) 45%, transparent); }
+
+/* ── Focus mode: strip the app back to the clock ── */
+:root.exam-focus .topbar,
+:root.exam-focus .foot,
+:root.exam-focus .exam-head,
+:root.exam-focus .preset-row,
+:root.exam-focus .custom-exam,
+:root.exam-focus .voice-row{ display:none !important; }
+:root.exam-focus .shell{ max-width:none; padding:0; }
+:root.exam-focus body{ overflow:hidden; }
+:root.exam-focus .exam-stage{
+  position:fixed; inset:0; z-index:70; border-radius:0; border-width:6px;
+  justify-content:center; padding:5vh 6vw;
+}
+:root.exam-focus .exam-clock{ font-size:clamp(90px, 22vw, 340px); }
+:root.exam-focus .exam-title{ font-size:24px; }
+:root.exam-focus .exam-meta{ max-width:820px; }
+:root.exam-focus .exam-bar{ max-width:1000px; }
+
+@media (max-width:620px){
+  .exam-stage{ padding:24px 16px; }
+  .exam-btn{ flex:1 1 100%; justify-content:center; }
+}
+
+/* ── Colour pickers (shared by the card modal and Settings) ── */
+.cswatches{ display:flex; gap:8px; flex-wrap:wrap; }
+.cswatch{
+  width:32px; height:32px; border-radius:9px; background:var(--c);
+  border:1px solid rgba(255,255,255,.16); position:relative;
+  transition:transform .14s, box-shadow .14s;
+}
+.cswatch:hover{ transform:scale(1.1); }
+.cswatch[aria-pressed="true"]{ box-shadow:0 0 0 2px var(--panel), 0 0 0 4px var(--accent); }
+.cswatch.is-original{
+  background:linear-gradient(140deg,#16233c 0%,#080c15 55%,#1a1730 100%);
+}
+
+.custom-col{ display:flex; align-items:center; gap:9px; }
+.custom-col input[type="color"]{
+  width:38px; height:34px; padding:2px; border-radius:8px; cursor:pointer;
+  background:var(--ground-2); border:1px solid var(--line);
+}
+.custom-col input[type="text"]{
+  width:104px; padding:8px 10px; border-radius:8px; font-family:var(--font-num); font-size:12.5px;
+  background:var(--ground-2); border:1px solid var(--line);
+}
+.custom-col input[type="text"]:focus{ border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none; }
+.custom-col input[type="text"].bad{ border-color:var(--coral); }
+.col-preview{
+  flex:1; min-width:0; text-align:center; padding:7px 10px; border-radius:8px;
+  font-size:11.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  background:var(--pv-bg,#dcf1e2); color:var(--pv-fg,#14532d);
+  border:1px solid var(--pv-edge,#bfe3cb);
+}
+
+/* ── Add / edit dialog ── */
+.modal-scrim{
+  position:fixed; inset:0; z-index:50; background:rgba(3,6,12,.66); backdrop-filter:blur(3px);
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.modal-scrim.open{ opacity:1; pointer-events:auto; }
+.modal{
+  position:fixed; z-index:51; left:50%; top:50%; width:min(430px, calc(100% - 32px));
+  transform:translate(-50%,-46%) scale(.97); opacity:0; pointer-events:none;
+  background:var(--panel); border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 30px 70px rgba(0,0,0,.6);
+  transition:opacity .2s, transform .2s cubic-bezier(.22,1,.36,1);
+}
+.modal.open{ transform:translate(-50%,-50%) scale(1); opacity:1; pointer-events:auto; }
+.modal-head{
+  display:flex; align-items:center; gap:12px;
+  padding:16px 20px 12px; border-bottom:1px solid var(--line-soft);
+}
+.modal-head .panel-title{ margin-right:auto; }
+.modal form{ display:flex; flex-direction:column; gap:14px; padding:16px 20px 20px; }
+.modal .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.modal-actions{ display:flex; gap:8px; align-items:center; margin-top:2px; }
+.modal-actions .btn{ flex:1; }
+.modal-actions .minibtn{ padding:10px 14px; }
+
+@media (max-width:520px){
+  .cd-grid{ grid-template-columns:1fr; }
+  .modal .row2{ grid-template-columns:1fr; }
+}
+
+/* ──────────────────────────  SETTINGS  ─────────────────────────── */
+.gear{
+  width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
+  color:var(--text-dim); background:var(--panel); border:1px solid var(--line);
+  transition:color .16s, border-color .16s, transform .3s;
+}
+.gear:hover{ color:var(--accent); border-color:color-mix(in srgb, var(--accent) 40%, transparent); transform:rotate(35deg); }
+
+.scrim{
+  position:fixed; inset:0; z-index:40; background:rgba(3,6,12,.62);
+  backdrop-filter:blur(3px); opacity:0; pointer-events:none; transition:opacity .22s;
+}
+.scrim.open{ opacity:1; pointer-events:auto; }
+
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; z-index:41; width:min(400px,100%);
+  display:flex; flex-direction:column;
+  background:var(--panel); border-left:1px solid var(--line);
+  box-shadow:-26px 0 60px rgba(0,0,0,.5);
+  transform:translateX(101%); transition:transform .26s cubic-bezier(.22,1,.36,1);
+}
+.drawer.open{ transform:translateX(0); }
+
+.drawer-head{
+  display:flex; align-items:center; gap:12px; flex:none;
+  padding:18px 20px 14px; border-bottom:1px solid var(--line-soft);
+}
+.drawer-head .panel-title{ margin-right:auto; }
+.drawer-body{ overflow-y:auto; padding:4px 20px 28px; display:flex; flex-direction:column; gap:22px; }
+
+.set-group{ display:flex; flex-direction:column; gap:11px; }
+.set-legend{
+  display:flex; align-items:center; gap:8px; padding-top:6px;
+  font-family:var(--font-num); font-size:9.5px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--text-faint);
+}
+.set-legend svg{ color:var(--accent); }
+.set-row{ display:flex; flex-direction:column; gap:7px; }
+.set-row > label,
+.set-name{ font-size:13px; color:var(--text); }
+.set-help{ font-size:11.5px; color:var(--text-faint); line-height:1.45; }
+
+.seg{ display:flex; gap:5px; flex-wrap:wrap; }
+.seg button{
+  flex:1 1 auto; min-width:72px; padding:8px 10px; border-radius:8px;
+  font-size:12.5px; color:var(--text-dim);
+  background:var(--ground-2); border:1px solid var(--line);
+  transition:color .15s, border-color .15s, background .15s;
+}
+.seg button:hover{ color:var(--text); }
+.seg button[aria-pressed="true"]{
+  color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 12%, var(--ground-2));
+  border-color:color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.swatches{ display:flex; gap:9px; flex-wrap:wrap; }
+.swatch{
+  width:34px; height:34px; border-radius:9px; position:relative;
+  border:1px solid var(--line);
+  background:linear-gradient(140deg, var(--a), var(--b));
+  transition:transform .14s, box-shadow .14s;
+}
+.swatch:hover{ transform:scale(1.09); }
+.swatch[aria-pressed="true"]{ box-shadow:0 0 0 2px var(--ground), 0 0 0 4px var(--a); }
+
+.set-select{
+  padding:9px 12px; border-radius:var(--radius-s); width:100%;
+  background:var(--ground-2); border:1px solid var(--line); font-size:13.5px;
+}
+.set-select:focus{ border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none; }
+
+.switch{
+  display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:10px;
+  background:var(--ground-2); border:1px solid var(--line); width:100%; text-align:left;
+}
+.switch:hover{ border-color:var(--text-faint); }
+.switch .set-name{ flex:1; }
+.track{
+  width:38px; height:21px; border-radius:99px; flex:none; padding:2.5px;
+  background:#0c1424; border:1px solid var(--line); transition:background .18s, border-color .18s;
+}
+.track i{
+  display:block; width:15px; height:15px; border-radius:99px; background:var(--text-faint);
+  transition:transform .18s, background .18s;
+}
+.switch[aria-pressed="true"] .track{
+  background:color-mix(in srgb, var(--accent) 26%, transparent);
+  border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.switch[aria-pressed="true"] .track i{ transform:translateX(17px); background:var(--accent); }
+
+.set-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.set-actions .minibtn{ flex:1 1 auto; justify-content:center; }
+.minibtn.danger{ color:var(--coral); border-color:color-mix(in srgb, var(--coral) 30%, transparent); }
+.minibtn.danger:hover{ background:color-mix(in srgb, var(--coral) 12%, transparent); border-color:var(--coral); }
+
+.code-line{
+  display:flex; align-items:center; gap:8px;
+  background:var(--ground-2); border:1px solid var(--line); border-radius:9px; padding:9px 10px;
+}
+.code-line code{
+  font-family:var(--font-num); font-size:10.5px; color:var(--text-dim);
+  white-space:nowrap; overflow-x:auto; flex:1; scrollbar-width:thin;
+}
+
+.toast{
+  position:fixed; left:50%; bottom:26px; z-index:60; transform:translate(-50%,14px);
+  padding:10px 18px; border-radius:99px; font-size:13px;
+  background:#0a1120; border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  color:var(--accent); box-shadow:0 12px 34px rgba(0,0,0,.55);
+  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+/* ──────────────────────────  RESPONSIVE  ────────────────────────── */
+@media (max-width:1180px){
+  .band{ grid-template-columns:1fr; }
+  .analytics{ grid-template-columns:1fr; }
+  .planner-top{ grid-template-columns:1fr; }
+  .board{ grid-template-columns:repeat(7,190px); overflow-x:auto; }
+}
+@media (max-width:720px){
+  .shell{ padding:16px 13px 52px; }
+  .kpis{ grid-template-columns:1fr; }
+  .form-grid{ grid-template-columns:1fr; }
+  .month-label{ font-size:27px; }
+  .brand-sub{ display:none; }
+  .abar{ grid-template-columns:112px 1fr 40px; }
+  .ring-card{ flex-direction:column; align-items:stretch; }
+  .ring{ margin:0 auto; }
+  .week-range{ min-width:0; flex:1; }
+  .tabs{ flex:1; }
+  .tab{ flex:1; justify-content:center; padding:8px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ transition-duration:.01ms !important; animation-duration:.01ms !important; }
+}
+</style>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" id="brandMark"></div>
+      <div>
+        <div class="brand-name">Quiet Progress</div>
+        <div class="brand-sub">Habit &amp; Study Tracker</div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-tab="habits"  aria-selected="true"><span data-icon="grid"></span> Daily Tracker</button>
+      <button class="tab" role="tab" data-tab="planner" aria-selected="false"><span data-icon="calendar"></span> Exam Planner</button>
+      <button class="tab" role="tab" data-tab="countdown" aria-selected="false"><span data-icon="timer"></span> Countdown Timers</button>
+      <button class="tab" role="tab" data-tab="exam" aria-selected="false"><span data-icon="siren"></span> Live Exam Mode</button>
+    </nav>
+    <button class="gear" id="gearBtn" aria-label="Open settings" aria-expanded="false"></button>
+  </header>
+
+  <main id="view"></main>
+
+  <footer class="foot">
+    <span>Saved on this device</span><span class="sep">/</span>
+    <span id="footStamp"></span><span class="sep">/</span>
+    <span>Nothing leaves your browser</span>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Settings" aria-hidden="true">
+  <div class="drawer-head">
+    <span class="panel-title">Settings</span>
+    <button class="icon-btn" id="closeDrawer" aria-label="Close settings"></button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+<input type="file" id="importFile" accept="application/json,.json" hidden/>
+
+<div class="modal-scrim" id="cdScrim"></div>
+<div class="modal" id="cdModal" role="dialog" aria-modal="true" aria-labelledby="cdModalTitle" aria-hidden="true">
+  <div class="modal-head">
+    <span class="panel-title" id="cdModalTitle">New countdown</span>
+    <button class="icon-btn" id="cdClose" type="button" aria-label="Close"></button>
+  </div>
+  <form id="cdForm" novalidate>
+    <input type="hidden" id="cdId"/>
+    <div class="field">
+      <label for="cdName">Event name</label>
+      <input id="cdName" type="text" maxlength="60" required placeholder="Biology Unit 4" autocomplete="off"/>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="cdDate">Target date</label>
+        <input id="cdDate" type="date" required/>
+      </div>
+      <div class="field">
+        <label for="cdTime">Target time</label>
+        <input id="cdTime" type="time" required value="09:00"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Card colour</label>
+      <div class="cswatches" id="cdSwatches"></div>
+      <div class="custom-col">
+        <input type="color" id="cdColorPick" aria-label="Custom card colour"/>
+        <input type="text" id="cdColorHex" maxlength="7" spellcheck="false"
+               aria-label="Card colour hex" placeholder="#dcf1e2"/>
+        <span class="col-preview" id="cdPreview">Preview</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" type="submit" id="cdSave">Save countdown</button>
+      <button class="minibtn danger" type="button" id="cdDelete" hidden>Delete</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* ═══════════════════════════  ICONS (Lucide)  ═══════════════════════════ */
+const P = {
+  check:    '<path d="M20 6 9 17l-5-5"/>',
+  left:     '<path d="m15 18-6-6 6-6"/>',
+  right:    '<path d="m9 18 6-6-6-6"/>',
+  plus:     '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  trash:    '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  grid:     '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+  target:   '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  layers:   '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m6.08 10.37-3.5 1.6a1 1 0 0 0 0 1.83l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.6"/><path d="m6.08 15.87-3.5 1.6a1 1 0 0 0 0 1.83l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.61"/>',
+  trend:    '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  wand:     '<path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8 19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2 19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/>',
+  undo:     '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  spark:    '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+  book:     '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  gear:     '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  x:        '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  upload:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+  palette:  '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+  type:     '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>',
+  sliders:  '<line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/>',
+  monitor:  '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+  db:       '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
+  copy:     '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  timer:    '<line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>',
+  bell:     '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
+  bellOff:  '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742"/><path d="m2 2 20 20"/><path d="M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05"/>',
+  edit:     '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/>',
+  play:     '<polygon points="6 3 20 12 6 21 6 3"/>',
+  pause:    '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
+  expand:   '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  shrink:   '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>',
+  volume:   '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/>',
+  volumeOff:'<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
+  siren:    '<path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/>'
+};
+const icon = (n, s = 16, sw = 2) =>
+  `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||""}</svg>`;
+
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+/* ═══════════════════════════  COLOUR  ═══════════════════════════
+   Card fills and the app ground are user-chosen, so every dependent
+   colour (text, borders, icons, panels) is derived rather than fixed.
+   That is what keeps an arbitrary hex readable instead of guessing. */
+function hexToRgb(hex){
+  let h = String(hex || "").trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  const n = parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+const hex2 = n => Math.round(clamp(n, 0, 255)).toString(16).padStart(2, "0");
+const rgbToHex = ({r,g,b}) => `#${hex2(r)}${hex2(g)}${hex2(b)}`;
+
+function rgbToHsl({r,g,b}){
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (d){
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if      (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else                h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return { h, s, l };
+}
+
+function hslToHex(h, s, l){
+  h = ((h % 360) + 360) % 360; s = clamp(s, 0, 1); l = clamp(l, 0, 1);
+  const c = (1 - Math.abs(2*l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if      (h <  60){ r = c; g = x; }
+  else if (h < 120){ r = x; g = c; }
+  else if (h < 180){ g = c; b = x; }
+  else if (h < 240){ g = x; b = c; }
+  else if (h < 300){ r = x; b = c; }
+  else             { r = c; b = x; }
+  return rgbToHex({ r:(r+m)*255, g:(g+m)*255, b:(b+m)*255 });
+}
+
+/** WCAG relative luminance — decides whether a fill needs dark or light ink. */
+function luminance(hex){
+  const c = hexToRgb(hex);
+  if (!c) return 0;
+  const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126*f(c.r) + 0.7152*f(c.g) + 0.0722*f(c.b);
+}
+
+const normHex = (hex, fallback) => {
+  const c = hexToRgb(hex);
+  return c ? rgbToHex(c) : fallback;
+};
+
+/* ── Countdown card fills ── */
+const CARD_DEFAULT = "#dcf1e2";
+const CARD_COLORS = [
+  { id:"sage",     hex:"#dcf1e2", label:"Sage Green"      },
+  { id:"blue",     hex:"#d8e8f8", label:"Soft Blue"       },
+  { id:"lavender", hex:"#e4dcf6", label:"Lavender Purple" },
+  { id:"sunset",   hex:"#fbe1cd", label:"Sunset Orange"   },
+  { id:"rose",     hex:"#fadde3", label:"Blush Rose"      },
+  { id:"sand",     hex:"#f4ecd4", label:"Warm Sand"       },
+  { id:"charcoal", hex:"#2b3444", label:"Charcoal"        },
+  { id:"ink",      hex:"#123040", label:"Deep Teal"       }
+];
+
+/** Full colour ramp for one card, derived from its fill. */
+function cardPalette(hex, past){
+  const rgb = hexToRgb(hex) || hexToRgb(CARD_DEFAULT);
+  let { h, s, l } = rgbToHsl(rgb);
+  if (past) s *= 0.16;                 // keep the hue, drain the saturation
+  const base = hslToHex(h, s, l);
+
+  // Light fill -> dark ink drawn from the same hue; dark fill -> light ink.
+  return luminance(base) > 0.34
+    ? { leaf: base,
+        edge: hslToHex(h, s, l - 0.09),
+        deep: hslToHex(h, Math.max(s, 0.32), 0.20),
+        mid:  hslToHex(h, Math.max(s * 0.62, 0.16), 0.38),
+        cell: hslToHex(h, s * 0.5, Math.min(0.975, l + 0.065)) }
+    : { leaf: base,
+        edge: hslToHex(h, s, l + 0.12),
+        deep: hslToHex(h, Math.min(s, 0.30), 0.96),
+        mid:  hslToHex(h, Math.min(s, 0.26), 0.74),
+        cell: hslToHex(h, s, l + 0.08) };
+}
+
+const cardStyle = (hex, past) => {
+  const p = cardPalette(hex, past);
+  return `--leaf:${p.leaf};--leaf-edge:${p.edge};--leaf-deep:${p.deep};--leaf-mid:${p.mid};--leaf-cell:${p.cell}`;
+};
+
+/* ── Live Exam Mode ── */
+const EXAM_PRESETS = [
+  { id:"u4",     title:"Biology Unit 4", mins:105 },
+  { id:"u5",     title:"Biology Unit 5", mins:105 },
+  { id:"u6",     title:"Biology Unit 6", mins:80  },
+  { id:"custom", title:"Custom Exam",    mins:60  }
+];
+
+const blankExam = () => ({
+  presetId: "u4",
+  title: EXAM_PRESETS[0].title,
+  durationMs: EXAM_PRESETS[0].mins * 60000,
+  status: "idle",          // idle | running | paused | done
+  elapsedMs: 0,            // banked time from finished run segments
+  runStartEpoch: null,     // wall-clock anchor for the live segment
+  fired: {},
+  voice: true
+});
+
+/* ── App ground ── */
+const BG_DEFAULT = "original";
+const BG_COLORS = [
+  { id:"original", hex:"",        label:"Original"      },
+  { id:"slate",    hex:"#0f172a", label:"Slate"         },
+  { id:"midnight", hex:"#090d16", label:"Midnight"      },
+  { id:"oled",     hex:"#000000", label:"Pure OLED"     },
+  { id:"navy",     hex:"#0b1329", label:"Deep Navy"     },
+  { id:"emerald",  hex:"#061f17", label:"Dark Emerald"  }
+];
+
+/* ═══════════════════════════  STORAGE  ═══════════════════════════ */
+const KEY = "quietprogress.tracker.v1";
+let memoryOnly = false;
+
+const DEFAULT_HABITS = [
+  { id:"h_fajr",    icon:"🕌", name:"Fajr Prayer"     },
+  { id:"h_dhuhr",   icon:"🕌", name:"Dhuhr Prayer"    },
+  { id:"h_asr",     icon:"🕌", name:"Asr Prayer"      },
+  { id:"h_maghrib", icon:"🕌", name:"Maghrib Prayer"  },
+  { id:"h_isha",    icon:"🕌", name:"Isha Prayer"     },
+  { id:"h_wake",    icon:"⏰", name:"Wake Up Early"   },
+  { id:"h_study",   icon:"📚", name:"Study ≥ 3 Hours" },
+  { id:"h_exam",    icon:"📝", name:"Solve Exam"      },
+  { id:"h_shower",  icon:"🚿", name:"Showering"       }
+];
+
+const today = new Date();
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const TODAY_ISO = iso(today);
+
+function mondayOf(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+
+/** Start of the week containing `d`, honouring Settings → Week starts on. */
+function weekStartOf(d){
+  const first = state.settings?.weekStart ?? 1;   // 0 = Sunday, 1 = Monday
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() - first + 7) % 7));
+  return x;
+}
+
+/* ── Look & behaviour options, all surfaced in the Settings drawer ── */
+const FONTS = {
+  system:   { label:"Segoe UI — Windows default", stack:'"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif' },
+  humanist: { label:"Trebuchet MS — warmer",      stack:'"Trebuchet MS","Segoe UI",sans-serif' },
+  grotesk:  { label:"Tahoma — tighter",           stack:'Tahoma,Verdana,"Segoe UI",sans-serif' },
+  legible:  { label:"Verdana — widest, clearest", stack:'Verdana,Geneva,"DejaVu Sans",sans-serif' },
+  serif:    { label:"Georgia — bookish",          stack:'Georgia,"Times New Roman",serif' },
+  mono:     { label:"Cascadia Mono — everything mono", stack:'"Cascadia Mono",Consolas,ui-monospace,monospace' }
+};
+const TITLES = {
+  hand:  { label:"Handwritten", stack:'"Segoe Script","Ink Free","Bradley Hand","Brush Script MT",cursive' },
+  sans:  { label:"Sans",        stack:"var(--font-ui)" },
+  serif: { label:"Serif",       stack:'Georgia,"Times New Roman",serif' }
+};
+const ACCENTS = {
+  teal:   { a:"#2ee6c5", b:"#38bdf8", label:"Teal"   },
+  cyan:   { a:"#38bdf8", b:"#8b7dff", label:"Cyan"   },
+  violet: { a:"#8b7dff", b:"#ff7a90", label:"Violet" },
+  amber:  { a:"#f7c948", b:"#ff9f45", label:"Amber"  },
+  coral:  { a:"#ff7a90", b:"#f7c948", label:"Coral"  },
+  lime:   { a:"#a3e635", b:"#2ee6c5", label:"Lime"   }
+};
+const DENSITY = {
+  compact: { w:26, h:31, b:16, label:"Compact" },
+  cozy:    { w:31, h:38, b:19, label:"Cozy"    },
+  roomy:   { w:38, h:45, b:23, label:"Roomy"   }
+};
+const DEFAULT_SETTINGS = {
+  font: "system", titles: "hand", accent: "teal",
+  density: "cozy", weekStart: 1, basis: "elapsed", glow: true,
+  bg: BG_DEFAULT                     // "original" = leave the built-in ramp alone
+};
+
+const blank = () => ({
+  habits: DEFAULT_HABITS.map(h => ({...h})),
+  checks: {},
+  exams:  [],
+  tasks:  {},
+  countdowns: [],
+  exam: blankExam(),
+  settings: { ...DEFAULT_SETTINGS },
+  ui: {
+    tab: "habits",
+    month: `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`,
+    week: iso(mondayOf(today))
+  }
+});
+
+let state = blank();
+let needsNormalise = false;
+try {
+  const raw = localStorage.getItem(KEY);
+  if (raw) {
+    const p = JSON.parse(raw);
+    state = {
+      ...blank(), ...p,
+      ui: { ...blank().ui, ...(p.ui||{}) },
+      exam: { ...blankExam(), ...(p.exam||{}) },               // older saves predate Live Exam Mode
+      settings: { ...DEFAULT_SETTINGS, ...(p.settings||{}) }   // older saves predate settings
+    };
+    if (!state.exam.fired || typeof state.exam.fired !== "object") state.exam.fired = {};
+    if (!Array.isArray(state.habits) || !state.habits.length) state.habits = blank().habits;
+    if (!Array.isArray(state.countdowns)) state.countdowns = [];   // predates the Countdown tab
+    // Backfill fields added after this save was written, then persist once so
+    // storage matches what the app is actually holding.
+    let migrated = false;
+    state.countdowns.forEach(c => {
+      if (!hexToRgb(c.color)){ c.color = CARD_DEFAULT; migrated = true; }
+    });
+    if (migrated || !("bg" in (p.settings || {}))) needsNormalise = true;
+  }
+} catch { memoryOnly = true; }
+
+let saveTimer = null;
+function save(){
+  if (memoryOnly) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch { memoryOnly = true; }
+  }, 120);
+}
+
+/* ═══════════════════════════  HELPERS  ═══════════════════════════ */
+const uid = () => Math.random().toString(36).slice(2, 10);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW_S  = ["Mo","Tu","We","Th","Fr","Sa","Su"];
+const DOW_L  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const WEEK_VARS = ["--w1","--w2","--w3","--w4","--w5","--w2"];
+
+const parseMonth = k => { const [y,m] = k.split("-").map(Number); return { y, m: m-1 }; };
+const daysInMonth = (y,m) => new Date(y, m+1, 0).getDate();
+const shiftMonth = (k, by) => { const {y,m} = parseMonth(k); const d = new Date(y, m+by, 1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const parseISO = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+
+/** Days actually lived in the displayed month. Drives the trend and the labels. */
+function calendarElapsed(monthKey){
+  const {y,m} = parseMonth(monthKey);
+  if (y > today.getFullYear() || (y === today.getFullYear() && m > today.getMonth())) return 0;
+  if (y === today.getFullYear() && m === today.getMonth()) return today.getDate();
+  return daysInMonth(y,m);
+}
+
+/** The denominator percentages divide by — Settings → Progress basis. */
+function elapsedDays(monthKey){
+  if (state.settings.basis === "full"){
+    const {y,m} = parseMonth(monthKey);
+    return daysInMonth(y,m);
+  }
+  return calendarElapsed(monthKey);
+}
+
+const isChecked = (mk, hid, d) => !!(state.checks[mk] && state.checks[mk][hid] && state.checks[mk][hid][d]);
+function toggleCheck(mk, hid, d){
+  const mo = state.checks[mk] || (state.checks[mk] = {});
+  const hb = mo[hid] || (mo[hid] = {});
+  if (hb[d]) delete hb[d]; else hb[d] = 1;
+  save();
+}
+
+/** Semantic ramp — coral < 40% ≤ amber < 70% ≤ teal. Separate from week hues. */
+const rateColor = p => p >= 70 ? "var(--good)" : p >= 40 ? "var(--mid)" : "var(--low)";
+
+/* ═══════════════════════════  METRICS  ═══════════════════════════ */
+function metrics(mk){
+  const {y,m}  = parseMonth(mk);
+  const total  = daysInMonth(y,m);
+  const lived  = elapsedDays(mk);
+  const habits = state.habits;
+
+  const perHabit = habits.map(h => {
+    let done = 0;
+    for (let d = 1; d <= total; d++) if (isChecked(mk, h.id, d)) done++;
+    return { habit:h, done, rate: lived ? Math.round(done/lived*100) : 0 };
+  });
+
+  const perDay = [];
+  for (let d = 1; d <= total; d++){
+    let done = 0;
+    for (const h of habits) if (isChecked(mk, h.id, d)) done++;
+    perDay.push({ day:d, done, pct: habits.length ? Math.round(done/habits.length*100) : 0 });
+  }
+
+  const completed = perHabit.reduce((s,x) => s + x.done, 0);
+  const possible  = habits.length * lived;
+  return {
+    total, lived, perHabit, perDay, completed,
+    shown: calendarElapsed(mk),      // trend length, independent of the basis setting
+    overall: possible ? Math.round(completed/possible*100) : 0,
+    possible
+  };
+}
+
+/* ═══════════════════════════  MONTH GRID  ═══════════════════════════ */
+function weekChunks(totalDays){
+  const out = [];
+  for (let s = 1; s <= totalDays; s += 7)
+    out.push({ n: out.length + 1, from: s, to: Math.min(s + 6, totalDays) });
+  return out;
+}
+
+function renderGrid(mk, M){
+  const {y,m}  = parseMonth(mk);
+  const weeks  = weekChunks(M.total);
+  const isCur  = y === today.getFullYear() && m === today.getMonth();
+  const todayD = isCur ? today.getDate() : -1;
+
+  const dayMeta = [];
+  for (let d = 1; d <= M.total; d++){
+    const dt = new Date(y, m, d);
+    const wi = (dt.getDay() + 6) % 7;
+    dayMeta.push({ d, dow: DOW_S[wi], weekend: wi >= 5, wk: Math.floor((d-1)/7) });
+  }
+
+  let head1 = `<tr><th class="sticky-l gh-corner col-habit" rowspan="2">Habit</th>`;
+  weeks.forEach(w => {
+    const v = WEEK_VARS[(w.n-1) % WEEK_VARS.length];
+    head1 += `<th class="gh-week" colspan="${w.to-w.from+1}" style="--wk:var(${v});--wk-bg:color-mix(in srgb, var(${v}) 11%, var(--ground-2))">Week ${w.n}</th>`;
+  });
+  head1 += `<th class="sticky-r gh-corner right col-rate" rowspan="2">Rate</th></tr>`;
+
+  let head2 = "<tr>";
+  dayMeta.forEach(dm => {
+    const cls = ["gh-day"];
+    if (dm.d === todayD) cls.push("is-today");
+    if (dm.weekend) cls.push("is-weekend");
+    head2 += `<th class="${cls.join(" ")}" scope="col"><span class="dow">${dm.dow}</span><span class="dnum">${dm.d}</span></th>`;
+  });
+  head2 += "</tr>";
+
+  const rows = M.perHabit.map(({habit, rate}) => {
+    let tds = `<td class="sticky-l col-habit"><div class="habit-cell">
+        <span class="habit-icon">${esc(habit.icon)}</span>
+        <span class="habit-name" title="${esc(habit.name)}">${esc(habit.name)}</span>
+        <button class="habit-del" data-act="del-habit" data-id="${habit.id}" title="Remove ${esc(habit.name)}" aria-label="Remove ${esc(habit.name)}">${icon("trash",13,1.9)}</button>
+      </div></td>`;
+
+    dayMeta.forEach(dm => {
+      const v  = WEEK_VARS[dm.wk % WEEK_VARS.length];
+      const on = isChecked(mk, habit.id, dm.d);
+      const cls = ["day"];
+      if (dm.d === todayD) cls.push("is-today");
+      if (todayD > 0 && dm.d > todayD) cls.push("is-future");
+      tds += `<td class="${cls.join(" ")}">
+        <button class="box${on ? " on" : ""}" role="checkbox" aria-checked="${on}"
+          aria-label="${esc(habit.name)}, ${MONTHS[m]} ${dm.d}"
+          data-act="toggle" data-h="${habit.id}" data-d="${dm.d}"
+          style="--wk:var(${v});--wk-line:color-mix(in srgb, var(${v}) 34%, transparent);--wk-glow:color-mix(in srgb, var(${v}) 55%, transparent)">${icon("check",12,3.2)}</button>
+      </td>`;
+    });
+
+    const c = rateColor(rate);
+    tds += `<td class="sticky-r col-rate"><div class="rate-cell" style="--c:${c}">
+        <span class="rate-bar"><span style="width:${rate}%"></span></span>
+        <span class="rate-num num">${rate}%</span>
+      </div></td>`;
+    return `<tr class="habit-row">${tds}</tr>`;
+  }).join("");
+
+  let totals = `<tr class="totals"><td class="sticky-l col-habit"><div class="totals-label">Daily %</div></td>`;
+  M.perDay.forEach(p => {
+    const future = todayD > 0 && p.day > todayD;
+    const c = future ? "var(--text-faint)" : rateColor(p.pct);
+    totals += `<td class="day-total" style="--c:${c}">${future && p.pct === 0 ? "·" : p.pct}</td>`;
+  });
+  totals += `<td class="sticky-r col-rate"><div class="totals-label right">${M.overall}%</div></td></tr>`;
+
+  return `<div class="grid-scroll" id="gridScroll"><table class="grid">
+      <thead>${head1}${head2}</thead>
+      <tbody>${rows}${totals}</tbody>
+    </table></div>`;
+}
+
+/* ═══════════════════════════  LINE CHART  ═══════════════════════════ */
+function smoothPath(pts){
+  if (pts.length < 2) return "";
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++){
+    const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+    const t = 0.2;
+    const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
+    const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
+    d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function renderTrend(M){
+  const series = M.perDay.slice(0, Math.max(M.shown, 0));
+  if (series.length < 1)
+    return `<div class="empty">${icon("trend",26,1.5)}<div>Tick a habit to start the trend line.</div></div>`;
+
+  const W = 780, H = 250, PL = 34, PR = 14, PT = 14, PB = 26;
+  const iw = W - PL - PR, ih = H - PT - PB;
+  const X = i => series.length === 1 ? PL + iw/2 : PL + (i/(series.length-1))*iw;
+  const Y = v => PT + ih - (v/100)*ih;
+
+  const pts = series.map((p,i) => ({ x:+X(i).toFixed(2), y:+Y(p.pct).toFixed(2), ...p }));
+  const line = smoothPath(pts);
+  const area = pts.length > 1
+    ? `${line} L ${pts[pts.length-1].x} ${PT+ih} L ${pts[0].x} ${PT+ih} Z`
+    : "";
+  const last = pts[pts.length-1];
+  const avg  = Math.round(series.reduce((s,p) => s+p.pct, 0) / series.length);
+
+  const gridL = [0,25,50,75,100].map(v =>
+    `<line class="grid-l" x1="${PL}" x2="${W-PR}" y1="${Y(v)}" y2="${Y(v)}"/>
+     <text class="axis-t" x="${PL-8}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`).join("");
+
+  const xLab = series.filter(p => p.day === 1 || p.day % 5 === 0)
+    .map(p => `<text class="axis-t" x="${X(series.indexOf(p))}" y="${H-7}" text-anchor="middle">${p.day}</text>`).join("");
+
+  const bandW = iw / Math.max(series.length, 1);
+  const bands = pts.map((p,i) =>
+    `<rect class="hover-band" x="${(p.x - bandW/2).toFixed(2)}" y="${PT}" width="${bandW.toFixed(2)}" height="${ih}"
+       data-hx="${p.x}" data-hy="${p.y}" data-hd="${p.day}" data-hp="${p.pct}" data-hn="${p.done}"/>`).join("");
+
+  return `<div class="chart-wrap" id="trendWrap">
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Daily completion percentage trend">
+      <defs>
+        <linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   style="stop-color:var(--accent)" stop-opacity=".34"/>
+          <stop offset="60%"  style="stop-color:var(--accent)" stop-opacity=".07"/>
+          <stop offset="100%" style="stop-color:var(--accent)" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="glow" x="-25%" y="-60%" width="150%" height="240%">
+          <feGaussianBlur stdDeviation="4.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      ${gridL}
+      <line class="grid-l" x1="${PL}" x2="${PL}" y1="${PT}" y2="${PT+ih}"/>
+      <line x1="${PL}" x2="${W-PR}" y1="${Y(avg)}" y2="${Y(avg)}" style="stroke:var(--amber)" stroke-width="1" stroke-dasharray="3 5" opacity=".5"/>
+      <text class="axis-t" x="${W-PR}" y="${Y(avg)-6}" text-anchor="end" style="fill:var(--amber)" opacity=".8">avg ${avg}%</text>
+      ${area ? `<path d="${area}" fill="url(#areaG)"/>` : ""}
+      ${line ? `<path id="trendLine" d="${line}" fill="none" style="stroke:var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>` : ""}
+      <circle cx="${last.x}" cy="${last.y}" r="9"   style="fill:var(--accent)" opacity=".16"/>
+      <circle cx="${last.x}" cy="${last.y}" r="4.2" style="fill:var(--accent)" stroke="#081019" stroke-width="2"/>
+      <g id="hoverG" opacity="0">
+        <line id="hoverLine" y1="${PT}" y2="${PT+ih}" style="stroke:var(--accent-2)" stroke-width="1" stroke-dasharray="3 4"/>
+        <circle id="hoverDot" r="4.6" style="fill:var(--accent-2)" stroke="#081019" stroke-width="2"/>
+      </g>
+      ${xLab}
+      ${bands}
+    </svg>
+    <div class="tip" id="tip"></div>
+  </div>`;
+}
+
+/* ═══════════════════════════  ANALYSIS BARS  ═══════════════════════════ */
+function renderAnalysis(M){
+  if (!M.perHabit.length) return `<div class="empty">No habits yet.</div>`;
+  const sorted = [...M.perHabit].sort((a,b) => b.rate - a.rate);
+  return `<div class="abars">` + sorted.map(({habit, rate, done}) => {
+    const c = rateColor(rate);
+    return `<div class="abar" style="--c:${c}" title="${esc(habit.name)} — ${done} of ${M.lived} days">
+      <span class="abar-name">${esc(habit.icon)} ${esc(habit.name)}</span>
+      <span class="abar-track"><span class="abar-fill" style="width:${rate}%"></span></span>
+      <span class="abar-val num">${rate}%</span>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+/* ═══════════════════════════  TAB 1  ═══════════════════════════ */
+function viewHabits(){
+  const mk = state.ui.month;
+  const {y,m} = parseMonth(mk);
+  const M = metrics(mk);
+  const isCur = y === today.getFullYear() && m === today.getMonth();
+
+  const kpi = (accent, ic, label, value, unit, foot, extra = "") => `
+    <section class="panel kpi" style="--kpi-accent:${accent}">
+      <div class="kpi-label">${icon(ic,13,2)} ${label}</div>
+      <div class="kpi-value num">${value}${unit ? `<small>${unit}</small>` : ""}</div>
+      ${extra}
+      <div class="kpi-foot">${foot}</div>
+    </section>`;
+
+  return `
+  <section class="band">
+    <div class="panel monthcard">
+      <div>
+        <div class="eyebrow">Tracking month</div>
+        <div class="month-nav">
+          <button data-act="month" data-by="-1" aria-label="Previous month">${icon("left",15)}</button>
+          <span class="month-label">${MONTHS[m]} ${y}</span>
+          <button data-act="month" data-by="1" aria-label="Next month">${icon("right",15)}</button>
+        </div>
+        <div class="month-sub">${M.shown} of ${M.total} days elapsed${isCur ? ` · today is the ${today.getDate()}${ordinal(today.getDate())}` : ""}${state.settings.basis === "full" ? " · scoring against the full month" : ""}</div>
+      </div>
+      <div class="month-tools">
+        <button class="minibtn" data-act="sample">${icon("spark",13,1.9)} Sample month</button>
+        <button class="minibtn" data-act="clear-month">${icon("undo",13,1.9)} Clear month</button>
+      </div>
+    </div>
+
+    <div class="kpis">
+      ${kpi("var(--violet)","layers","Total habits", state.habits.length, "", "tracked every day")}
+      ${kpi("var(--amber)","target","Completed habits", M.completed, "", `of ${M.possible} possible check-ins`)}
+      ${kpi("var(--accent)","trend","Overall progress", M.overall, "%", `${M.shown ? Math.round(M.completed/M.shown*10)/10 : 0} habits per day on average`,
+        `<div class="bar-track"><div class="bar-fill" style="width:${M.overall}%"></div></div>`)}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <span class="panel-title">My Habits</span>
+      <span class="eyebrow">${M.total} days · ${weekChunks(M.total).length} weeks</span>
+      <span class="spacer"></span>
+      <span class="eyebrow">Click any square to log a day</span>
+    </div>
+    ${renderGrid(mk, M)}
+    <form class="addhabit" data-act="add-habit">
+      <input id="newHabit" name="newHabit" type="text" maxlength="40" placeholder="Add a habit — e.g. 📖 Read 20 pages" autocomplete="off"/>
+      <button class="minibtn" type="submit">${icon("plus",13,2)} Add habit</button>
+    </form>
+  </section>
+
+  <section class="analytics">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Progress Trend</span>
+        <span class="eyebrow">daily completion %</span>
+      </div>
+      ${renderTrend(M)}
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Analysis</span>
+        <span class="eyebrow">rate per habit</span>
+      </div>
+      ${renderAnalysis(M)}
+    </div>
+  </section>`;
+}
+
+const ordinal = n => (n % 100 >= 11 && n % 100 <= 13) ? "th" : ["th","st","nd","rd"][n % 10] || "th";
+
+/* ═══════════════════════════  TAB 2  ═══════════════════════════ */
+const PRI = {
+  high:   { label:"High",   c:"var(--coral)" },
+  medium: { label:"Medium", c:"var(--amber)" },
+  low:    { label:"Low",    c:"var(--cyan)"  }
+};
+const examColor = e => (PRI[e.priority] || PRI.medium).c;
+const findExam  = id => state.exams.find(e => e.id === id);
+
+/** How many day-cards across all weeks currently carry this exam. */
+function assignedUnits(id){
+  let n = 0;
+  Object.values(state.tasks).forEach(l => l.forEach(t => { if (t.examId === id) n++; }));
+  return n;
+}
+
+function weekDays(){
+  const start = parseISO(state.ui.week);
+  return Array.from({length:7}, (_,i) => {
+    const d = addDays(start, i);
+    // Names come from the date itself, so a Sunday-start week labels correctly.
+    return { date:d, key:iso(d), dow:DOW_L[(d.getDay()+6)%7], num:d.getDate(), isToday: iso(d) === TODAY_ISO };
+  });
+}
+const tasksOn = key => state.tasks[key] || [];
+
+function weekStats(){
+  const days = weekDays();
+  let done = 0, total = 0;
+  days.forEach(d => tasksOn(d.key).forEach(t => { total++; if (t.done) done++; }));
+  return { done, total, pct: total ? Math.round(done/total*100) : 0, days };
+}
+
+/** Spread an exam's units across the week from today (or the week start) to its target date. */
+function autoDistribute(examId){
+  const ex = findExam(examId);
+  if (!ex) return;
+  const days = weekDays();
+  const startIdx = Math.max(0, days.findIndex(d => d.key >= TODAY_ISO));
+  let endIdx = 6;
+  if (ex.date){
+    const i = days.findIndex(d => d.key === ex.date);
+    if (i >= 0) endIdx = i;
+    else if (ex.date < days[0].key) endIdx = 6;
+  }
+  if (endIdx < startIdx) endIdx = 6;
+
+  const slots = days.slice(startIdx, endIdx + 1);
+  if (!slots.length) return;
+
+  // Drop this exam's existing auto-generated cards so re-running never duplicates,
+  // but remember what was already ticked off so a re-split doesn't erase progress.
+  const wasDone = new Set();
+  slots.forEach(d => {
+    tasksOn(d.key).forEach(t => { if (t.examId === examId && t.auto && t.done) wasDone.add(t.sub); });
+    state.tasks[d.key] = tasksOn(d.key).filter(t => !(t.examId === examId && t.auto));
+    if (!state.tasks[d.key].length) delete state.tasks[d.key];
+  });
+
+  const units = Math.max(1, Number(ex.units) || 1);
+  const base  = Math.floor(units / slots.length);
+  const extra = units % slots.length;
+  let cursor  = 1;
+
+  slots.forEach((d, i) => {
+    const n = base + (i < extra ? 1 : 0);
+    if (n <= 0) return;
+    const from = cursor, to = cursor + n - 1;
+    cursor = to + 1;
+    const sub = n === 1 ? `Unit ${from}` : `Units ${from}–${to}`;
+    (state.tasks[d.key] = tasksOn(d.key)).push({
+      id: uid(), examId, auto: true, done: wasDone.has(sub),
+      title: ex.name, sub
+    });
+  });
+  save();
+}
+
+function renderRing(pct, done, total){
+  const R = 54, C = 2 * Math.PI * R, off = C * (1 - pct/100);
+  return `<div class="ring">
+    <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="Weekly exam completion ${pct}%">
+      <defs><linearGradient id="ringG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" style="stop-color:var(--accent)"/><stop offset="100%" style="stop-color:var(--accent-2)"/>
+      </linearGradient></defs>
+      <circle cx="66" cy="66" r="${R}" fill="none" stroke="#0c1424" stroke-width="12"/>
+      <circle id="ringArc" cx="66" cy="66" r="${R}" fill="none" stroke="url(#ringG)" stroke-width="12" stroke-linecap="round"
+        stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+        style="transition:stroke-dashoffset .55s cubic-bezier(.22,1,.36,1); filter:drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 50%, transparent))"/>
+    </svg>
+    <div class="ring-mid"><div class="ring-pct num">${pct}%</div><div class="ring-cap">${done}/${total} done</div></div>
+  </div>`;
+}
+
+function renderBoard(){
+  const W = weekStats();
+  return W.days.map(d => {
+    const list = tasksOn(d.key);
+    const done = list.filter(t => t.done).length;
+    const cards = list.map(t => {
+      const ex = findExam(t.examId);
+      const c  = ex ? examColor(ex) : "var(--text-faint)";
+      return `<article class="task${t.done ? " done" : ""}" style="--c:${c}" draggable="true" data-task="${t.id}" data-day="${d.key}">
+        <button class="task-check" data-act="toggle-task" data-id="${t.id}" data-day="${d.key}"
+          role="checkbox" aria-checked="${t.done}" aria-label="Mark ${esc(t.title)} complete">${icon("check",11,3.4)}</button>
+        <div>
+          <div class="task-title">${esc(t.title)}</div>
+          ${t.sub ? `<div class="task-sub">${esc(t.sub)}</div>` : ""}
+        </div>
+        <button class="task-del" data-act="del-task" data-id="${t.id}" data-day="${d.key}" aria-label="Remove task">${icon("trash",13,1.9)}</button>
+      </article>`;
+    }).join("");
+
+    return `<div class="day-col${d.isToday ? " is-today" : ""}" data-drop="${d.key}">
+      <div class="day-head">
+        <span class="day-dow">${d.dow.slice(0,3)}</span>
+        <span class="day-date num">${String(d.num).padStart(2,"0")}</span>
+        <span class="day-count num${list.length && done === list.length ? " done" : ""}" data-count="${d.key}">${list.length ? `${done}/${list.length}` : "—"}</span>
+      </div>
+      ${cards || ""}
+      <div data-slot="${d.key}"></div>
+      <button class="day-add" data-act="pick" data-day="${d.key}">${icon("plus",12,2)} Assign</button>
+    </div>`;
+  }).join("");
+}
+
+function viewPlanner(){
+  const W = weekStats();
+  const range = `${MONTHS[W.days[0].date.getMonth()].slice(0,3)} ${W.days[0].num} — ${MONTHS[W.days[6].date.getMonth()].slice(0,3)} ${W.days[6].num}`;
+
+  const exams = state.exams.length
+    ? state.exams.map(e => {
+        const c = examColor(e);
+        const daysLeft = e.date ? Math.round((parseISO(e.date) - parseISO(TODAY_ISO)) / 864e5) : null;
+        const when = daysLeft === null ? "no date"
+          : daysLeft === 0 ? "today"
+          : daysLeft > 0 ? `in ${daysLeft}d` : `${Math.abs(daysLeft)}d ago`;
+        return `<div class="exam-chip" style="--c:${c}">
+          <span class="pri-tag" style="--c:${c}">${(PRI[e.priority]||PRI.medium).label}</span>
+          <div style="min-width:0">
+            <div class="exam-name">${esc(e.name)}</div>
+            <div class="exam-meta">${e.units} units · ${assignedUnits(e.id)} assigned · ${when}</div>
+          </div>
+          <button class="icon-btn" data-act="auto" data-id="${e.id}" title="Split across this week">${icon("wand",15,1.9)}</button>
+          <button class="icon-btn danger" data-act="del-exam" data-id="${e.id}" title="Delete exam">${icon("trash",15,1.9)}</button>
+        </div>`;
+      }).join("")
+    : `<div class="empty" style="min-height:110px">${icon("book",24,1.5)}<div>No exams yet. Add one to start planning.</div></div>`;
+
+  return `
+  <section class="planner-top">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Add an Exam</span>
+        <span class="eyebrow">subject · units · target</span>
+      </div>
+      <form class="form-grid" data-act="add-exam">
+        <div class="field wide">
+          <label for="exName">Exam / Subject</label>
+          <input id="exName" name="exName" type="text" required maxlength="60" placeholder="Organic Chemistry — Paper II" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="exUnits">Units / Topics</label>
+          <input id="exUnits" name="exUnits" type="number" min="1" max="60" value="6"/>
+        </div>
+        <div class="field">
+          <label for="exDate">Target date</label>
+          <input id="exDate" name="exDate" type="date" value="${state.ui.week}"/>
+        </div>
+        <div class="field">
+          <label for="exPri">Priority</label>
+          <select id="exPri" name="exPri">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <button class="btn" type="submit">${icon("plus",15,2.2)} Add exam</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Weekly Exam Completion</span>
+        <span class="eyebrow">${range}</span>
+      </div>
+      <div class="ring-card" id="ringCard">
+        ${renderRing(W.pct, W.done, W.total)}
+        <div class="ring-stats">
+          <div class="stat-row" style="--c:var(--teal)"><span><i class="dot" style="background:var(--teal);display:inline-block;width:7px;height:7px;border-radius:99px;margin-right:7px"></i>Completed tasks</span><b>${W.done}</b></div>
+          <div class="stat-row" style="--c:var(--amber)"><span><i class="dot" style="background:var(--amber);display:inline-block;width:7px;height:7px;border-radius:99px;margin-right:7px"></i>Remaining</span><b>${W.total - W.done}</b></div>
+          <div class="stat-row" style="--c:var(--violet)"><span><i class="dot" style="background:var(--violet);display:inline-block;width:7px;height:7px;border-radius:99px;margin-right:7px"></i>Active exams</span><b>${state.exams.length}</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-bottom:16px">
+    <div class="panel-head">
+      <span class="panel-title">Exams</span>
+      <span class="eyebrow">wand splits units across the week</span>
+    </div>
+    <div class="exam-list" id="examList">${exams}</div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <span class="panel-title">This Week</span>
+      <span class="eyebrow">Mon — Sun</span>
+      <span class="spacer"></span>
+      <div class="week-nav">
+        <button class="minibtn" data-act="week" data-by="-7" aria-label="Previous week">${icon("left",13)}</button>
+        <span class="week-range num">${range}</span>
+        <button class="minibtn" data-act="week" data-by="7" aria-label="Next week">${icon("right",13)}</button>
+        <button class="minibtn" data-act="week-today">Today</button>
+      </div>
+    </div>
+    <div class="board" id="board">${renderBoard()}</div>
+    <div class="hint">Drag a card to move it to another day. Click the square to tick it off.</div>
+  </section>`;
+}
+
+/* ═══════════════════════  TAB 3 — COUNTDOWNS  ═══════════════════════ */
+const cdTarget = cd => new Date(`${cd.date}T${(cd.time || "09:00")}:00`);
+
+function timeLeft(cd){
+  const target = cdTarget(cd);
+  if (isNaN(target)) return { invalid:true, past:false, days:0, hours:0, minutes:0, target:null };
+  const ms = target.getTime() - Date.now();
+  if (ms <= 0) return { past:true, days:0, hours:0, minutes:0, target };
+  const mins = Math.floor(ms / 60000);
+  return {
+    past:false,
+    days:    Math.floor(mins / 1440),
+    hours:   Math.floor((mins % 1440) / 60),
+    minutes: mins % 60,
+    target
+  };
+}
+
+function fmtWhen(d){
+  if (!d || isNaN(d)) return "Date not set";
+  const day  = d.toLocaleDateString(undefined, { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+  const time = d.toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit", hour12:false });
+  return `${day} at ${time}`;
+}
+
+/** Soonest first; anything already past sinks to the bottom. */
+const sortedCountdowns = () => [...state.countdowns].sort((a,b) => {
+  const ta = cdTarget(a).getTime(), tb = cdTarget(b).getTime();
+  const pa = ta <= Date.now(), pb = tb <= Date.now();
+  if (pa !== pb) return pa ? 1 : -1;
+  return ta - tb;
+});
+
+function cdCard(cd){
+  const t = timeLeft(cd);
+  const block = (unit, value) =>
+    `<div class="cd-block">
+       <div class="cd-num" data-u="${unit}">${value}</div>
+       <div class="cd-unit">${unit}</div>
+     </div>`;
+
+  return `<article class="cd-card${t.past ? " is-past" : ""}" data-cd="${cd.id}"
+    style="${cardStyle(cd.color || CARD_DEFAULT, t.past)}">
+    <div class="cd-top">
+      <div style="flex:1;min-width:0">
+        <h3 class="cd-name">${esc(cd.name)}</h3>
+        <div class="cd-when">${esc(fmtWhen(t.target))}</div>
+      </div>
+      <div class="cd-tools">
+        <button class="cd-icon${cd.notify ? " on" : ""}" data-act="cd-bell" data-id="${cd.id}"
+          aria-pressed="${!!cd.notify}"
+          title="${cd.notify ? "Reminder on" : "Remind me when this hits zero"}"
+          aria-label="${cd.notify ? "Turn reminder off" : "Turn reminder on"} for ${esc(cd.name)}">${icon(cd.notify ? "bell" : "bellOff", 17, 1.8)}</button>
+        <button class="cd-icon" data-act="cd-edit" data-id="${cd.id}"
+          title="Edit" aria-label="Edit ${esc(cd.name)}">${icon("edit", 17, 1.8)}</button>
+      </div>
+    </div>
+    <div class="cd-blocks">
+      ${block("days", t.days)}${block("hours", t.hours)}${block("minutes", t.minutes)}
+    </div>
+    ${t.past ? `<span class="cd-pill">Passed</span>` : ""}
+  </article>`;
+}
+
+function viewCountdown(){
+  const list = sortedCountdowns();
+  const upcoming = list.filter(c => !timeLeft(c).past).length;
+
+  const cards = list.length
+    ? list.map(cdCard).join("")
+    : `<div class="cd-empty">
+         ${icon("timer", 30, 1.4)}
+         <b>No countdowns yet</b>
+         <span>Add an exam or deadline and watch it tick down in real time.</span>
+       </div>`;
+
+  return `
+  <div class="cd-head">
+    <span class="panel-title">Countdown Timers</span>
+    <span class="eyebrow">${list.length} tracked · ${upcoming} still ahead</span>
+    <button class="btn" data-act="cd-add">${icon("plus",15,2.2)} Add Countdown</button>
+  </div>
+  <div class="cd-grid" id="cdGrid">${cards}</div>`;
+}
+
+/* ── Live ticking ──────────────────────────────────────────────────
+   Runs every second but only writes a number when it actually changed,
+   so the cards stay accurate at minute boundaries without thrashing
+   the DOM or resetting hover states. */
+let cdTimer = null;
+
+function stopCountdownTick(){
+  if (cdTimer){ clearInterval(cdTimer); cdTimer = null; }
+}
+
+function startCountdownTick(){
+  stopCountdownTick();
+  if (state.ui.tab !== "countdown" || !state.countdowns.length) return;
+  cdTimer = setInterval(tickCountdowns, 1000);
+}
+
+function tickCountdowns(){
+  let structureChanged = false;
+
+  state.countdowns.forEach(cd => {
+    const card = document.querySelector(`[data-cd="${cd.id}"]`);
+    if (!card) return;
+    const t = timeLeft(cd);
+
+    ["days","hours","minutes"].forEach(u => {
+      const n = card.querySelector(`[data-u="${u}"]`);
+      const v = String(t[u]);
+      if (n && n.textContent !== v) n.textContent = v;
+    });
+
+    const wasPast = card.classList.contains("is-past");
+    if (t.past !== wasPast){
+      structureChanged = true;
+      if (t.past && cd.notify) fireReminder(cd);
+    }
+  });
+
+  // Crossing zero changes the pill and the sort order, so fall back to a
+  // full paint for that one frame.
+  if (structureChanged) render();
+}
+
+function fireReminder(cd){
+  try {
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    new Notification("Quiet Progress", { body: `${cd.name} — the countdown has finished.` });
+  } catch { /* notifications unavailable in this context */ }
+}
+
+async function toggleReminder(cd){
+  if (!cd.notify){
+    try {
+      if (typeof Notification !== "undefined" && Notification.permission === "default"){
+        await Notification.requestPermission();
+      }
+    } catch { /* ignore — the flag still toggles, we just can't pop a notification */ }
+  }
+  cd.notify = !cd.notify;
+  save();
+  render();
+  const ok = typeof Notification !== "undefined" && Notification.permission === "granted";
+  toast(!cd.notify ? "Reminder off"
+      : ok ? "Reminder on — alerts while the app is open"
+           : "Reminder on, but notifications are blocked in this browser");
+}
+
+/* ── Add / edit dialog ── */
+const cdModal = document.getElementById("cdModal");
+const cdScrim = document.getElementById("cdScrim");
+const cdForm  = document.getElementById("cdForm");
+let cdLastFocus = null;
+
+/** Colour currently selected in the dialog. */
+let cdColor = CARD_DEFAULT;
+
+function paintCdColorUI(){
+  document.getElementById("cdSwatches").innerHTML = CARD_COLORS.map(c =>
+    `<button type="button" class="cswatch" style="--c:${c.hex}" data-cdcol="${c.hex}"
+       aria-pressed="${c.hex.toLowerCase() === cdColor.toLowerCase()}"
+       title="${c.label}" aria-label="${c.label}"></button>`).join("");
+
+  document.getElementById("cdColorPick").value = cdColor;
+  const hexField = document.getElementById("cdColorHex");
+  if (document.activeElement !== hexField) hexField.value = cdColor;
+  hexField.classList.remove("bad");
+
+  const p = cardPalette(cdColor, false);
+  const pv = document.getElementById("cdPreview");
+  pv.style.setProperty("--pv-bg",   p.leaf);
+  pv.style.setProperty("--pv-fg",   p.deep);
+  pv.style.setProperty("--pv-edge", p.edge);
+  pv.textContent = luminance(p.leaf) > 0.34 ? "Dark text on light card" : "Light text on dark card";
+}
+
+function setCdColor(hex){
+  cdColor = normHex(hex, CARD_DEFAULT);
+  paintCdColorUI();
+}
+
+function openCdModal(id){
+  const cd = id ? state.countdowns.find(c => c.id === id) : null;
+  cdLastFocus = document.activeElement;
+
+  document.getElementById("cdModalTitle").textContent = cd ? "Edit countdown" : "New countdown";
+  document.getElementById("cdId").value   = cd ? cd.id : "";
+  document.getElementById("cdName").value = cd ? cd.name : "";
+  document.getElementById("cdDate").value = cd ? cd.date : "";
+  document.getElementById("cdTime").value = cd ? (cd.time || "09:00") : "09:00";
+  document.getElementById("cdDelete").hidden = !cd;
+  setCdColor(cd ? (cd.color || CARD_DEFAULT) : CARD_DEFAULT);
+
+  cdModal.classList.add("open");
+  cdScrim.classList.add("open");
+  cdModal.setAttribute("aria-hidden","false");
+  setTimeout(() => document.getElementById("cdName").focus(), 30);
+}
+
+function closeCdModal(){
+  cdModal.classList.remove("open");
+  cdScrim.classList.remove("open");
+  cdModal.setAttribute("aria-hidden","true");
+  cdLastFocus?.focus?.();
+}
+
+document.getElementById("cdSwatches").addEventListener("click", e => {
+  const b = e.target.closest("[data-cdcol]");
+  if (b) setCdColor(b.dataset.cdcol);
+});
+document.getElementById("cdColorPick").addEventListener("input", e => setCdColor(e.target.value));
+document.getElementById("cdColorHex").addEventListener("input", e => {
+  const v = e.target.value.trim();
+  if (hexToRgb(v)) setCdColor(v);
+  else e.target.classList.add("bad");          // keep typing; just flag it
+});
+document.getElementById("cdColorHex").addEventListener("blur", () => paintCdColorUI());
+
+cdScrim.addEventListener("click", closeCdModal);
+document.getElementById("cdClose").addEventListener("click", closeCdModal);
+document.getElementById("cdClose").innerHTML = icon("x",16,2.2);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && cdModal.classList.contains("open")) closeCdModal();
+});
+
+document.getElementById("cdDelete").addEventListener("click", () => {
+  const id = document.getElementById("cdId").value;
+  const cd = state.countdowns.find(c => c.id === id);
+  if (!cd) return;
+  if (!confirm(`Delete the countdown for “${cd.name}”?`)) return;
+  state.countdowns = state.countdowns.filter(c => c.id !== id);
+  save(); closeCdModal(); render();
+  toast("Countdown deleted");
+});
+
+cdForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const id   = document.getElementById("cdId").value;
+  const name = document.getElementById("cdName").value.trim();
+  const date = document.getElementById("cdDate").value;
+  const time = document.getElementById("cdTime").value || "09:00";
+
+  if (!name){ toast("Give the countdown a name"); document.getElementById("cdName").focus(); return; }
+  if (!date){ toast("Pick a target date");        document.getElementById("cdDate").focus(); return; }
+  if (isNaN(new Date(`${date}T${time}:00`))){ toast("That date and time didn't parse"); return; }
+
+  if (id){
+    const cd = state.countdowns.find(c => c.id === id);
+    if (cd) Object.assign(cd, { name, date, time, color: cdColor });
+  } else {
+    state.countdowns.push({ id: "c_" + uid(), name, date, time, color: cdColor, notify:false });
+  }
+  save(); closeCdModal(); render();
+  toast(id ? "Countdown updated" : "Countdown added");
+});
+
+/* ═══════════════════════  TAB 4 — LIVE EXAM MODE  ═══════════════════════ */
+
+/* performance.now() is monotonic and unaffected by clock changes or the
+   window being minimised, but its origin resets on reload. So the wall-clock
+   epoch is the durable anchor and the perf clock is re-derived from it. */
+let perfAnchor = null;
+
+function reanchorExam(){
+  const e = state.exam;
+  perfAnchor = (e.status === "running" && e.runStartEpoch)
+    ? performance.now() - (Date.now() - e.runStartEpoch)
+    : null;
+}
+
+/** Signed milliseconds left; goes negative past the end (milestones need that). */
+function examRemainingRaw(){
+  const e = state.exam;
+  let elapsed = e.elapsedMs;
+  if (e.status === "running"){
+    elapsed += perfAnchor !== null
+      ? performance.now() - perfAnchor
+      : Date.now() - (e.runStartEpoch || Date.now());
+  }
+  return e.durationMs - elapsed;
+}
+const examRemaining = () => Math.max(0, examRemainingRaw());
+
+function fmtHMS(ms){
+  const t = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const p = n => String(n).padStart(2, "0");
+  return `${p(h)}:${p(m)}:${p(s)}`;
+}
+
+/** Announcements armed for this exam length, nearest-to-the-end last.
+    Three cues only — the 15-minute mark still turns the display amber
+    (see examPhase) but is deliberately not spoken. */
+function examCues(durationMs){
+  const half = durationMs / 2;
+  const all = [
+    { key:"half", at: half,     say:"Half time remaining",       label:"Half time" },
+    { key:"m5",   at:  5*60000, say:"5 minutes remaining",       label:"5 min"     },
+    { key:"end",  at: 0,        say:"Time is up, stop writing",  label:"Time up"   }
+  ];
+  return all.filter(c => {
+    if (c.key === "end")  return true;
+    if (c.at >= durationMs) return false;             // longer than the exam itself
+    if (c.key !== "half" && Math.abs(c.at - half) < 1000) return false;  // same instant as half
+    return true;
+  }).sort((a,b) => b.at - a.at);
+}
+
+/* Visual phases are independent of the spoken cues: 15 minutes still turns
+   the stage amber even though that milestone is no longer announced. */
+const examPhase = rem =>
+  rem <= 0          ? "done"
+  : rem <= 5*60000  ? "danger"
+  : rem <= 15*60000 ? "warn"
+  : "normal";
+
+/* ── Voice ── */
+function speak(text){
+  try {
+    if (typeof speechSynthesis === "undefined") return false;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95; u.pitch = 1; u.volume = 1; u.lang = "en-GB";
+    speechSynthesis.speak(u);
+    return true;
+  } catch { return false; }
+}
+
+/* ── Ticking ──────────────────────────────────────────────────────
+   Runs whenever the exam is live, not just while its tab is showing,
+   so announcements still land if you switch tabs mid-paper. */
+let examTimer = null;
+
+function stopExamTick(){ if (examTimer){ clearInterval(examTimer); examTimer = null; } }
+
+function startExamTick(){
+  stopExamTick();
+  if (state.exam.status !== "running") return;
+  examTimer = setInterval(examTick, 250);
+}
+
+function examTick(){
+  const e = state.exam;
+  const raw = examRemainingRaw();
+  const rem = Math.max(0, raw);
+  const phase = examPhase(rem);
+
+  // Milestones. If the app was closed through one, mark it done silently
+  // rather than shouting a stale announcement on reopen.
+  let dirty = false;
+  examCues(e.durationMs).forEach(c => {
+    if (e.fired[c.key] || raw > c.at) return;
+    e.fired[c.key] = true;
+    dirty = true;
+    if (e.voice && (c.at - raw) < 15000) speak(c.say);
+  });
+
+  if (raw <= 0 && e.status === "running"){
+    e.status = "done";
+    e.elapsedMs = e.durationMs;
+    e.runStartEpoch = null;
+    perfAnchor = null;
+    stopExamTick();
+    save();
+    render();
+    return;
+  }
+  if (dirty) save();
+
+  // Patch in place so the clock never flickers or loses the pulse animation.
+  const clock = document.getElementById("examClock");
+  if (clock){
+    const txt = fmtHMS(rem);
+    if (clock.textContent !== txt) clock.textContent = txt;
+    const fill = document.getElementById("examFill");
+    if (fill) fill.style.width = `${(rem / e.durationMs) * 100}%`;
+    const stage = document.getElementById("examStage");
+    if (stage && stage.dataset.phase !== phase) stage.dataset.phase = phase;
+    const el = document.getElementById("examElapsed");
+    if (el) el.textContent = fmtHMS(e.durationMs - rem);
+    const nx = document.getElementById("examNext");
+    if (nx) nx.textContent = nextCueLabel();
+  }
+}
+
+function nextCueLabel(){
+  const raw = examRemainingRaw();
+  const next = examCues(state.exam.durationMs).find(c => raw > c.at && !state.exam.fired[c.key]);
+  return next ? `${next.label} in ${fmtHMS(raw - next.at)}` : "—";
+}
+
+/* ── Controls ── */
+function examStart(){
+  const e = state.exam;
+  if (e.status === "done") return;
+  e.runStartEpoch = Date.now();
+  perfAnchor = performance.now();
+  e.status = "running";
+  save(); render();
+}
+
+function examPause(){
+  const e = state.exam;
+  if (e.status !== "running") return;
+  e.elapsedMs = Math.min(e.durationMs, e.durationMs - examRemainingRaw());
+  e.runStartEpoch = null;
+  perfAnchor = null;
+  e.status = "paused";
+  stopExamTick();
+  save(); render();
+}
+
+function examReset(){
+  const e = state.exam;
+  if (e.status !== "idle" && !confirm("Reset the timer back to the full duration?")) return;
+  e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {};
+  perfAnchor = null;
+  stopExamTick();
+  try { speechSynthesis && speechSynthesis.cancel(); } catch {}
+  save(); render();
+}
+
+function examApplyPreset(id){
+  const p = EXAM_PRESETS.find(x => x.id === id);
+  if (!p) return;
+  const e = state.exam;
+  if (e.status === "running" && !confirm("The timer is running. Switch exam and reset it?")) return;
+  e.presetId = id;
+  if (id !== "custom"){ e.title = p.title; e.durationMs = p.mins * 60000; }
+  e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {};
+  perfAnchor = null;
+  stopExamTick();
+  save(); render();
+}
+
+/* ── Focus mode ── */
+let examFocus = false;
+
+async function setExamFocus(on){
+  examFocus = on;
+  document.documentElement.classList.toggle("exam-focus", on);
+  try {
+    if (on && !document.fullscreenElement) await document.documentElement.requestFullscreen();
+    else if (!on && document.fullscreenElement) await document.exitFullscreen();
+  } catch { /* fullscreen can be refused; the CSS focus layout still applies */ }
+  render();
+}
+
+document.addEventListener("fullscreenchange", () => {
+  // Esc leaves fullscreen natively — keep our own flag in step.
+  if (!document.fullscreenElement && examFocus){
+    examFocus = false;
+    document.documentElement.classList.remove("exam-focus");
+    render();
+  }
+});
+
+/* ── View ── */
+function viewExam(){
+  const e = state.exam;
+  const rem = examRemaining();
+  const phase = examPhase(rem);
+  const cues = examCues(e.durationMs);
+  const running = e.status === "running";
+
+  const stateLabel = e.status === "running" ? "In progress"
+                   : e.status === "paused"  ? "Paused"
+                   : e.status === "done"    ? "Time expired"
+                   : "Ready to start";
+
+  const presets = EXAM_PRESETS.map(p => `
+    <button class="preset" data-act="exam-preset" data-id="${p.id}" aria-pressed="${e.presetId === p.id}">
+      <b>${esc(p.title)}</b>
+      <span>${p.id === "custom" ? "set your own" : `${Math.floor(p.mins/60)}h ${String(p.mins%60).padStart(2,"0")}m`}</span>
+    </button>`).join("");
+
+  const custom = e.presetId === "custom" ? `
+    <form class="custom-exam" data-act="exam-custom">
+      <div class="field">
+        <label for="exTitle">Exam title</label>
+        <input id="exTitle" type="text" maxlength="50" value="${esc(e.title)}" placeholder="Custom Exam" autocomplete="off"/>
+      </div>
+      <div class="field" style="flex:0 1 150px">
+        <label for="exMins">Duration (minutes)</label>
+        <input id="exMins" type="number" min="1" max="600" value="${Math.round(e.durationMs/60000)}"/>
+      </div>
+      <button class="minibtn" type="submit">${icon("check",13,2)} Apply</button>
+    </form>` : "";
+
+  const cueChips = cues.map(c => {
+    const done = !!e.fired[c.key];
+    const isNext = !done && cues.filter(x => !e.fired[x.key])[0]?.key === c.key;
+    return `<span class="cue${done ? " done" : isNext ? " next" : ""}">${c.label}${done ? " ✓" : ""}</span>`;
+  }).join("");
+
+  return `
+  <div class="exam-wrap">
+    <div class="exam-head">
+      <span class="panel-title">Live Exam Mode</span>
+      <span class="eyebrow">${cues.length} voice cues armed</span>
+    </div>
+
+    <div class="preset-row">${presets}</div>
+    ${custom}
+
+    <section class="exam-stage" id="examStage" data-phase="${phase}">
+      <div>
+        <div class="exam-title">${esc(e.title)}</div>
+        <div class="exam-state">${stateLabel}</div>
+      </div>
+
+      <div class="exam-clock" id="examClock" role="timer" aria-live="off">${fmtHMS(rem)}</div>
+
+      <div class="exam-bar"><div class="exam-fill" id="examFill" style="width:${(rem/e.durationMs)*100}%"></div></div>
+
+      <div class="exam-meta">
+        <div class="exam-stat"><b>${fmtHMS(e.durationMs)}</b><span>total</span></div>
+        <div class="exam-stat"><b id="examElapsed">${fmtHMS(e.durationMs - rem)}</b><span>elapsed</span></div>
+        <div class="exam-stat"><b id="examNext">${esc(nextCueLabel())}</b><span>next cue</span></div>
+      </div>
+
+      <div class="exam-controls">
+        ${running
+          ? `<button class="exam-btn primary" data-act="exam-pause">${icon("pause",17,2)} Pause</button>`
+          : `<button class="exam-btn primary" data-act="exam-start" ${e.status === "done" ? "disabled" : ""}>${icon("play",17,2)} ${e.status === "paused" ? "Resume" : "Start"}</button>`}
+        <button class="exam-btn" data-act="exam-reset">${icon("undo",17,2)} Reset</button>
+        <button class="exam-btn" data-act="exam-focus">${icon(examFocus ? "shrink" : "expand",17,2)} ${examFocus ? "Exit focus" : "Focus mode"}</button>
+      </div>
+    </section>
+
+    <div class="voice-row">
+      <span class="set-name">Voice alerts<br><span class="set-help">Spoken through your device at each milestone. Announcements still fire while other tabs are open.</span></span>
+      <div class="cue-list">${cueChips}</div>
+      <button class="switch" data-act="exam-voice" aria-pressed="${e.voice}" style="width:auto;flex:0 0 auto">
+        <span class="set-name">${e.voice ? "On" : "Off"}</span>
+        <span class="track"><i></i></span>
+      </button>
+      <button class="minibtn" data-act="exam-test">${icon(e.voice ? "volume" : "volumeOff",13,1.9)} Test voice</button>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════  RENDER  ═══════════════════════════ */
+const view = document.getElementById("view");
+
+function render(){
+  const scroll = document.getElementById("gridScroll")?.scrollLeft ?? 0;
+  const ae = document.activeElement;
+  const focusId = ae && ae.id ? ae.id : null;
+  const caret = ae && typeof ae.selectionStart === "number" ? ae.selectionStart : null;
+  const drafts = {};
+  view.querySelectorAll("input[id], select[id]").forEach(el => { drafts[el.id] = el.value; });
+
+  document.querySelectorAll("#tabs .tab").forEach(t =>
+    t.setAttribute("aria-selected", String(t.dataset.tab === state.ui.tab)));
+
+  view.innerHTML = state.ui.tab === "habits"    ? viewHabits()
+                 : state.ui.tab === "countdown" ? viewCountdown()
+                 : state.ui.tab === "exam"      ? viewExam()
+                 :                                viewPlanner();
+
+  Object.entries(drafts).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el && el.type !== "date" && el.tagName !== "SELECT" && v !== "") el.value = v;
+  });
+  const g = document.getElementById("gridScroll");
+  if (g) g.scrollLeft = scroll;
+  if (focusId){
+    const el = document.getElementById(focusId);
+    if (el){
+      el.focus({ preventScroll:true });
+      if (caret !== null && typeof el.setSelectionRange === "function"){
+        try { el.setSelectionRange(caret, caret); } catch {}
+      }
+    }
+  }
+  if (state.ui.tab === "habits") wireTrend();
+  startCountdownTick();
+  startExamTick();   // independent of the visible tab
+}
+
+/* Update the meters in place so the ring animates and no card is torn out
+   from under the pointer. Called on every tick, drop and delete. */
+function updateMeters(){
+  const W = weekStats();
+  const arc = document.getElementById("ringArc");
+  if (arc){
+    const C = 2 * Math.PI * 54;
+    arc.setAttribute("stroke-dashoffset", (C * (1 - W.pct/100)).toFixed(1));
+  }
+  const pct = document.querySelector(".ring-pct");
+  if (pct) pct.textContent = `${W.pct}%`;
+  const cap = document.querySelector(".ring-cap");
+  if (cap) cap.textContent = `${W.done}/${W.total} done`;
+
+  const rows = document.querySelectorAll("#ringCard .stat-row b");
+  if (rows.length === 3){
+    rows[0].textContent = W.done;
+    rows[1].textContent = W.total - W.done;
+    rows[2].textContent = state.exams.length;
+  }
+  W.days.forEach(d => {
+    const el = document.querySelector(`[data-count="${d.key}"]`);
+    if (!el) return;
+    const list = tasksOn(d.key), done = list.filter(t => t.done).length;
+    el.textContent = list.length ? `${done}/${list.length}` : "—";
+    el.classList.toggle("done", !!list.length && done === list.length);
+  });
+
+  document.querySelectorAll(".exam-chip").forEach((chip, i) => {
+    const ex = state.exams[i];
+    if (!ex) return;
+    const meta = chip.querySelector(".exam-meta");
+    if (meta) meta.textContent = meta.textContent.replace(/· \d+ assigned/, `· ${assignedUnits(ex.id)} assigned`);
+  });
+}
+
+/* Rebuild the board only — used when cards are added, removed or moved. */
+function renderPlannerLive(){
+  const board = document.getElementById("board");
+  if (board) board.innerHTML = renderBoard();
+  updateMeters();
+}
+
+/* ═══════════════════════════  CHART HOVER  ═══════════════════════════ */
+function wireTrend(){
+  const wrap = document.getElementById("trendWrap");
+  if (!wrap) return;
+  const svg = wrap.querySelector("svg");
+  const tip = document.getElementById("tip");
+  const g   = wrap.querySelector("#hoverG");
+  const ln  = wrap.querySelector("#hoverLine");
+  const dot = wrap.querySelector("#hoverDot");
+  if (!svg || !tip || !g) return;
+  const {y:my, m:mm} = parseMonth(state.ui.month);
+
+  wrap.addEventListener("mousemove", ev => {
+    const band = ev.target.closest(".hover-band");
+    if (!band){ g.setAttribute("opacity","0"); tip.style.opacity = "0"; return; }
+    const hx = +band.dataset.hx, hy = +band.dataset.hy;
+    ln.setAttribute("x1", hx); ln.setAttribute("x2", hx);
+    dot.setAttribute("cx", hx); dot.setAttribute("cy", hy);
+    g.setAttribute("opacity","1");
+
+    const r = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    tip.style.left = `${(hx / vb.width) * r.width}px`;
+    tip.style.top  = `${(hy / vb.height) * r.height}px`;
+    tip.innerHTML  = `<b>${band.dataset.hp}%</b><span>${MONTHS[mm].slice(0,3)} ${band.dataset.hd} · ${band.dataset.hn} of ${state.habits.length}</span>`;
+    tip.style.opacity = "1";
+  });
+  wrap.addEventListener("mouseleave", () => { g.setAttribute("opacity","0"); tip.style.opacity = "0"; });
+}
+
+/* ═══════════════════════════  SETTINGS  ═══════════════════════════ */
+const root   = document.documentElement;
+const drawer = document.getElementById("drawer");
+const scrim  = document.getElementById("scrim");
+const body   = document.getElementById("drawerBody");
+const gear   = document.getElementById("gearBtn");
+let lastFocus = null;
+
+/** Push the current settings into CSS custom properties. No re-render needed. */
+function applySettings(){
+  const s = state.settings;
+  root.style.setProperty("--font-ui",    (FONTS[s.font]   || FONTS.system).stack);
+  root.style.setProperty("--font-title", (TITLES[s.titles]|| TITLES.hand ).stack);
+  root.setAttribute("data-titles", s.titles);
+
+  const a = ACCENTS[s.accent] || ACCENTS.teal;
+  root.style.setProperty("--accent",   a.a);
+  root.style.setProperty("--accent-2", a.b);
+
+  const d = DENSITY[s.density] || DENSITY.cozy;
+  root.style.setProperty("--cell-w", d.w + "px");
+  root.style.setProperty("--row-h",  d.h + "px");
+  root.style.setProperty("--box",    d.b + "px");
+
+  root.classList.toggle("no-glow", !s.glow);
+  applyBackground(s.bg);
+}
+
+/* Derive the whole surface ramp from one ground colour, so panels, cell fills
+   and hairlines stay in the same family instead of clashing with it. */
+const BG_VARS = ["--ground","--ground-2","--cell","--panel","--panel-2",
+                 "--line-soft","--line","--glow-1","--glow-2",
+                 "--text","--text-dim","--text-faint"];
+
+function applyBackground(bg){
+  // "original" restores the hand-tuned stylesheet palette.
+  if (!bg || bg === "original" || !hexToRgb(bg)){
+    BG_VARS.forEach(v => root.style.removeProperty(v));
+    document.body.style.removeProperty("background-color");
+    root.classList.remove("light-ground");
+    return;
+  }
+
+  const { h, s, l } = rgbToHsl(hexToRgb(bg));
+  const light = luminance(bg) > 0.35;
+  const dir = light ? -1 : 1;              // surfaces step away from the ground
+  const L = d => clamp(l + dir * d, 0, 1);
+  const set = (k, v) => root.style.setProperty(k, v);
+
+  set("--ground",    hslToHex(h, s, l));
+  // body's background propagates to the page canvas, and Chromium does not
+  // re-resolve that from a changed custom property — so set it directly too.
+  document.body.style.backgroundColor = hslToHex(h, s, l);
+  set("--ground-2",  hslToHex(h, s, L(0.028)));
+  set("--cell",      hslToHex(h, s, L(0.045)));
+  set("--panel",     hslToHex(h, s, L(0.058)));
+  set("--panel-2",   hslToHex(h, s, L(0.092)));
+  set("--line-soft", hslToHex(h, s, L(0.10)));
+  set("--line",      hslToHex(h, s, L(0.15)));
+  set("--glow-1",    hslToHex(h, s, L(0.085)));
+  set("--glow-2",    hslToHex((h + 296) % 360, Math.min(s + 0.08, 1), L(0.075)));
+
+  // A light ground would leave the default pale text invisible.
+  if (light){
+    set("--text", "#0c1320"); set("--text-dim", "#41506a"); set("--text-faint", "#6d7d97");
+  } else {
+    set("--text", "#e7edf8"); set("--text-dim", "#8d9cb6"); set("--text-faint", "#5b6a83");
+  }
+  root.classList.toggle("light-ground", light);
+}
+
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+}
+
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    // Clipboard API is blocked in some sandboxed frames — fall back to a scratch node.
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    } catch { return false; }
+  }
+}
+
+/* ── Launch at Windows startup ────────────────────────────────────
+   A page cannot register itself; it needs a shortcut in the user's
+   Startup folder. Build the exact command for wherever this copy lives. */
+function startupCommands(){
+  const href = location.href.split("#")[0];
+  const dir  = `$([Environment]::GetFolderPath('Startup'))`;
+  if (href.startsWith("file:///")){
+    const winPath = decodeURIComponent(href.slice(8)).replace(/\//g, "\\");
+    return {
+      kind: "local file",
+      on:  `$s=(New-Object -ComObject WScript.Shell).CreateShortcut("${dir}\\Quiet Progress.lnk"); $s.TargetPath='${winPath}'; $s.Save()`,
+      off: `Remove-Item "${dir}\\Quiet Progress.lnk" -ErrorAction SilentlyContinue`
+    };
+  }
+  return {
+    kind: "hosted page",
+    on:  `'[InternetShortcut]','URL=${href}' | Set-Content "${dir}\\Quiet Progress.url"`,
+    off: `Remove-Item "${dir}\\Quiet Progress.url" -ErrorAction SilentlyContinue`
+  };
+}
+
+/* ── Backup / restore ── */
+function exportData(){
+  const json = JSON.stringify(state, null, 2);
+  try {
+    const url = URL.createObjectURL(new Blob([json], { type:"application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `quiet-progress-backup-${TODAY_ISO}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    toast("Backup downloaded");
+  } catch {
+    copyText(json).then(ok => toast(ok ? "Download blocked — backup copied instead" : "Could not export here"));
+  }
+}
+
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try { parsed = JSON.parse(reader.result); }
+    catch { toast("That file isn't valid JSON"); return; }
+    if (!parsed || !Array.isArray(parsed.habits)){
+      toast("That doesn't look like a tracker backup");
+      return;
+    }
+    if (!confirm("Replace everything currently in the app with this backup?")) return;
+    state = {
+      ...blank(), ...parsed,
+      ui:       { ...blank().ui,     ...(parsed.ui||{}) },
+      settings: { ...DEFAULT_SETTINGS, ...(parsed.settings||{}) }
+    };
+    save(); applySettings(); render(); renderSettings();
+    toast("Backup restored");
+  };
+  reader.onerror = () => toast("Could not read that file");
+  reader.readAsText(file);
+}
+
+/* ── Drawer ── */
+const seg = (name, opts, current) =>
+  `<div class="seg" role="group">` + opts.map(([val, label]) =>
+    `<button data-set="${name}" data-val="${val}" aria-pressed="${String(val) === String(current)}">${label}</button>`
+  ).join("") + `</div>`;
+
+const toggle = (name, label, help, on) =>
+  `<button class="switch" data-set="${name}" data-val="toggle" aria-pressed="${on}">
+     <span class="set-name">${label}${help ? `<br><span class="set-help">${help}</span>` : ""}</span>
+     <span class="track"><i></i></span>
+   </button>`;
+
+/* Running inside the Electron shell? Then the OS can do this properly. */
+const DESKTOP = typeof window !== "undefined" && window.desktop && window.desktop.isDesktop;
+let desktopLogin = false;
+
+function startupSection(){
+  if (DESKTOP){
+    return `<div class="set-group">
+      <div class="set-legend">${icon("monitor",13,2)} Startup</div>
+      ${toggle("openAtLogin", "Open when I sign in",
+               "Windows will launch Quiet Progress automatically after you log in.", desktopLogin)}
+      <span class="set-help">Handled by the app's own login-item setting — no scripts, no registry edits.
+        Turn it off here and it's gone.</span>
+    </div>`;
+  }
+
+  const sc = startupCommands();
+  return `<div class="set-group">
+    <div class="set-legend">${icon("monitor",13,2)} Launch at Windows startup</div>
+    <span class="set-help">A web page can't add itself to startup. Paste this into <b>PowerShell</b> once and Windows
+      will open this tracker (${sc.kind}) every time you sign in.</span>
+    <div class="code-line">
+      <code>${esc(sc.on)}</code>
+      <button class="icon-btn" data-set="copy-on" title="Copy command" aria-label="Copy startup command">${icon("copy",14,1.9)}</button>
+    </div>
+    <span class="set-help">To undo it later:</span>
+    <div class="code-line">
+      <code>${esc(sc.off)}</code>
+      <button class="icon-btn" data-set="copy-off" title="Copy command" aria-label="Copy removal command">${icon("copy",14,1.9)}</button>
+    </div>
+    <span class="set-help">It only adds a shortcut to your own Startup folder — no registry changes, no admin rights.</span>
+  </div>`;
+}
+
+function renderSettings(){
+  const s = state.settings;
+
+  body.innerHTML = `
+  <div class="set-group">
+    <div class="set-legend">${icon("type",13,2)} Typeface</div>
+    <div class="set-row">
+      <label for="fontSel">Interface font</label>
+      <select class="set-select" id="fontSel" data-set="font">
+        ${Object.entries(FONTS).map(([k,v]) =>
+          `<option value="${k}"${k === s.font ? " selected" : ""}>${v.label}</option>`).join("")}
+      </select>
+      <span class="set-help">Statistics always stay monospaced so columns of digits line up.</span>
+    </div>
+    <div class="set-row">
+      <span class="set-name">Panel titles</span>
+      ${seg("titles", Object.entries(TITLES).map(([k,v]) => [k, v.label]), s.titles)}
+    </div>
+  </div>
+
+  <div class="set-group">
+    <div class="set-legend">${icon("palette",13,2)} Colour</div>
+    <div class="set-row">
+      <span class="set-name">Accent</span>
+      <div class="swatches">
+        ${Object.entries(ACCENTS).map(([k,v]) =>
+          `<button class="swatch" style="--a:${v.a};--b:${v.b}" data-set="accent" data-val="${k}"
+             aria-pressed="${k === s.accent}" title="${v.label}" aria-label="${v.label} accent"></button>`).join("")}
+      </div>
+      <span class="set-help">Completion rates keep their own teal / amber / coral scale so “on track” never changes meaning.</span>
+    </div>
+    ${toggle("glow", "Glow effects", "Neon bloom on lines, bars and ticked boxes.", s.glow)}
+  </div>
+
+  <div class="set-group">
+    <div class="set-legend">${icon("monitor",13,2)} App background</div>
+    <div class="set-row">
+      <span class="set-name">Theme</span>
+      <div class="cswatches">
+        ${BG_COLORS.map(c => {
+          const on = (s.bg || BG_DEFAULT).toLowerCase() === (c.hex || c.id).toLowerCase()
+                  || (c.id === "original" && (s.bg || "original") === "original");
+          return `<button type="button" class="cswatch${c.id === "original" ? " is-original" : ""}"
+            style="--c:${c.hex || "#080c15"}" data-bg="${c.hex || "original"}"
+            aria-pressed="${on}" title="${c.label}" aria-label="${c.label} background"></button>`;
+        }).join("")}
+      </div>
+      <span class="set-help">Panels, cell fills and hairlines are re-derived from whatever you pick, so the whole app stays in one colour family.</span>
+    </div>
+    <div class="set-row">
+      <span class="set-name">Custom</span>
+      <div class="custom-col">
+        <input type="color" id="bgPick" value="${normHex(s.bg, "#080c15")}" aria-label="Custom background colour"/>
+        <input type="text" id="bgHex" maxlength="7" spellcheck="false"
+               value="${s.bg === "original" ? "" : esc(s.bg || "")}"
+               placeholder="#0f172a" aria-label="Background colour hex"/>
+        <button class="minibtn" data-set="bg-reset" type="button">${icon("undo",13,1.9)} Original</button>
+      </div>
+      <span class="set-help">Very light grounds flip the text to dark automatically, though the charts are tuned for dark themes.</span>
+    </div>
+  </div>
+
+  <div class="set-group">
+    <div class="set-legend">${icon("sliders",13,2)} Layout</div>
+    <div class="set-row">
+      <span class="set-name">Grid density</span>
+      ${seg("density", Object.entries(DENSITY).map(([k,v]) => [k, v.label]), s.density)}
+    </div>
+    <div class="set-row">
+      <span class="set-name">Week starts on</span>
+      ${seg("weekStart", [[1,"Monday"],[0,"Sunday"]], s.weekStart)}
+      <span class="set-help">Reorders the planner board. The habit grid always runs day 1 to month end.</span>
+    </div>
+    <div class="set-row">
+      <span class="set-name">Progress basis</span>
+      ${seg("basis", [["elapsed","Days so far"],["full","Whole month"]], s.basis)}
+      <span class="set-help">${s.basis === "elapsed"
+        ? "A perfect record reads 100% on the 3rd — percentages divide by days elapsed."
+        : "Percentages divide by every day in the month, so they climb as the month fills in."}</span>
+    </div>
+  </div>
+
+  <div class="set-group">
+    <div class="set-legend">${icon("db",13,2)} Your data</div>
+    <span class="set-help">Everything lives in this browser's storage only. Clearing site data or switching browser loses it — keep a backup.</span>
+    <div class="set-actions">
+      <button class="minibtn" data-set="export">${icon("download",13,1.9)} Download backup</button>
+      <button class="minibtn" data-set="import">${icon("upload",13,1.9)} Restore</button>
+    </div>
+    <div class="set-actions">
+      <button class="minibtn danger" data-set="reset">${icon("undo",13,1.9)} Reset everything</button>
+    </div>
+  </div>
+
+  ${startupSection()}`;
+}
+
+function openDrawer(){
+  lastFocus = document.activeElement;
+  renderSettings();
+  drawer.classList.add("open");
+  scrim.classList.add("open");
+  drawer.setAttribute("aria-hidden","false");
+  gear.setAttribute("aria-expanded","true");
+  document.getElementById("closeDrawer").focus();
+}
+function closeDrawer(){
+  drawer.classList.remove("open");
+  scrim.classList.remove("open");
+  drawer.setAttribute("aria-hidden","true");
+  gear.setAttribute("aria-expanded","false");
+  lastFocus?.focus?.();
+}
+
+gear.addEventListener("click", openDrawer);
+scrim.addEventListener("click", closeDrawer);
+document.getElementById("closeDrawer").innerHTML = icon("x",16,2.2);
+document.getElementById("closeDrawer").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
+});
+
+document.getElementById("importFile").addEventListener("change", e => {
+  const f = e.target.files?.[0];
+  if (f) importData(f);
+  e.target.value = "";
+});
+
+body.addEventListener("change", e => {
+  if (e.target.id === "fontSel"){
+    state.settings.font = e.target.value;
+    save(); applySettings();
+  }
+});
+
+/* Background colour inputs live in the drawer and apply as you drag. */
+body.addEventListener("input", e => {
+  if (e.target.id === "bgPick"){
+    state.settings.bg = normHex(e.target.value, BG_DEFAULT);
+    document.getElementById("bgHex").value = state.settings.bg;
+    save(); applySettings(); syncBgSwatches();
+  }
+  if (e.target.id === "bgHex"){
+    const v = e.target.value.trim();
+    if (!v){ return; }
+    if (hexToRgb(v)){
+      e.target.classList.remove("bad");
+      state.settings.bg = normHex(v, BG_DEFAULT);
+      document.getElementById("bgPick").value = state.settings.bg;
+      save(); applySettings(); syncBgSwatches();
+    } else {
+      e.target.classList.add("bad");
+    }
+  }
+});
+
+/** Update pressed state without repainting the drawer mid-typing. */
+function syncBgSwatches(){
+  const cur = (state.settings.bg || BG_DEFAULT).toLowerCase();
+  document.querySelectorAll("[data-bg]").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.bg.toLowerCase() === cur));
+  });
+}
+
+body.addEventListener("click", e => {
+  const swatch = e.target.closest("[data-bg]");
+  if (swatch){
+    state.settings.bg = swatch.dataset.bg;
+    save(); applySettings(); renderSettings();
+    return;
+  }
+
+  const el = e.target.closest("[data-set]");
+  if (!el || el.tagName === "SELECT") return;
+  const key = el.dataset.set, val = el.dataset.val;
+
+  switch (key){
+    case "titles": case "accent": case "density":
+      state.settings[key] = val;
+      save(); applySettings(); renderSettings();
+      break;
+
+    case "glow":
+      state.settings.glow = !state.settings.glow;
+      save(); applySettings(); renderSettings();
+      break;
+
+    case "weekStart":
+      state.settings.weekStart = Number(val);
+      state.ui.week = iso(weekStartOf(parseISO(state.ui.week)));
+      save(); render(); renderSettings();
+      break;
+
+    case "basis":
+      state.settings.basis = val;
+      save(); render(); renderSettings();
+      break;
+
+    case "bg-reset":
+      state.settings.bg = "original";
+      save(); applySettings(); renderSettings();
+      toast("Background reset to original");
+      break;
+
+    case "export": exportData(); break;
+    case "import": document.getElementById("importFile").click(); break;
+
+    case "reset":
+      if (confirm("Delete every habit tick, exam and setting on this device? This cannot be undone.")){
+        state = blank();
+        try { localStorage.removeItem(KEY); } catch {}
+        save(); applySettings(); render(); renderSettings();
+        toast("Everything reset");
+      }
+      break;
+
+    case "copy-on": case "copy-off": {
+      const sc = startupCommands();
+      copyText(key === "copy-on" ? sc.on : sc.off)
+        .then(ok => toast(ok ? "Command copied — paste it into PowerShell" : "Copy blocked; select the text manually"));
+      break;
+    }
+
+    case "openAtLogin": {
+      if (!DESKTOP) break;
+      const want = !desktopLogin;
+      desktopLogin = want;            // optimistic, so the switch feels instant
+      renderSettings();
+      window.desktop.openAtLogin.set(want).then(actual => {
+        desktopLogin = actual;
+        renderSettings();
+        toast(actual ? "Quiet Progress will open at sign-in" : "Removed from sign-in");
+      }).catch(() => {
+        desktopLogin = !want;
+        renderSettings();
+        toast("Windows wouldn't accept that change");
+      });
+      break;
+    }
+  }
+});
+
+/* ═══════════════════════════  EVENTS  ═══════════════════════════ */
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab");
+  if (!b) return;
+  state.ui.tab = b.dataset.tab; save(); render();
+});
+
+view.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el || el.tagName === "FORM") return;
+  const act = el.dataset.act;
+
+  switch (act){
+    case "toggle": {
+      toggleCheck(state.ui.month, el.dataset.h, +el.dataset.d);
+      render();
+      break;
+    }
+    case "month": {
+      state.ui.month = shiftMonth(state.ui.month, +el.dataset.by); save(); render();
+      break;
+    }
+    case "del-habit": {
+      const h = state.habits.find(x => x.id === el.dataset.id);
+      if (h && confirm(`Remove “${h.name}”? Its logged days will be deleted.`)){
+        state.habits = state.habits.filter(x => x.id !== h.id);
+        Object.values(state.checks).forEach(mo => { delete mo[h.id]; });
+        save(); render();
+      }
+      break;
+    }
+    case "sample": {
+      const mk = state.ui.month;
+      const {y:sy, m:sm} = parseMonth(mk);
+      // For a future month nothing has elapsed yet, so fill the whole thing.
+      const lived = elapsedDays(mk) || daysInMonth(sy, sm);
+      const mo = state.checks[mk] = {};
+      state.habits.forEach((h, hi) => {
+        mo[h.id] = {};
+        const bias = 0.86 - hi * 0.055;
+        for (let d = 1; d <= lived; d++){
+          if (Math.random() < clamp(bias + Math.sin(d / 4) * 0.11, 0.12, 0.96)) mo[h.id][d] = 1;
+        }
+      });
+      save(); render();
+      break;
+    }
+    case "clear-month": {
+      if (confirm(`Clear every tick logged in this month?`)){
+        delete state.checks[state.ui.month]; save(); render();
+      }
+      break;
+    }
+    case "week": {
+      state.ui.week = iso(addDays(parseISO(state.ui.week), +el.dataset.by)); save(); render();
+      break;
+    }
+    case "week-today": {
+      state.ui.week = iso(weekStartOf(today)); save(); render();
+      break;
+    }
+    case "auto": {
+      autoDistribute(el.dataset.id); render();
+      break;
+    }
+    case "del-exam": {
+      const ex = findExam(el.dataset.id);
+      if (ex && confirm(`Delete “${ex.name}” and its assigned tasks?`)){
+        state.exams = state.exams.filter(x => x.id !== ex.id);
+        Object.keys(state.tasks).forEach(k => {
+          state.tasks[k] = state.tasks[k].filter(t => t.examId !== ex.id);
+          if (!state.tasks[k].length) delete state.tasks[k];
+        });
+        save(); render();
+      }
+      break;
+    }
+    case "toggle-task": {
+      const list = state.tasks[el.dataset.day] || [];
+      const t = list.find(x => x.id === el.dataset.id);
+      if (t){
+        t.done = !t.done;
+        el.closest(".task")?.classList.toggle("done", t.done);
+        el.setAttribute("aria-checked", String(t.done));
+        save(); updateMeters();
+      }
+      break;
+    }
+    case "del-task": {
+      const k = el.dataset.day;
+      state.tasks[k] = (state.tasks[k] || []).filter(t => t.id !== el.dataset.id);
+      if (!state.tasks[k].length) delete state.tasks[k];
+      save(); renderPlannerLive();
+      break;
+    }
+    case "pick": {
+      openPicker(el.dataset.day);
+      break;
+    }
+    case "exam-preset": examApplyPreset(el.dataset.id); break;
+    case "exam-start":  examStart(); break;
+    case "exam-pause":  examPause(); break;
+    case "exam-reset":  examReset(); break;
+    case "exam-focus":  setExamFocus(!examFocus); break;
+
+    case "exam-voice": {
+      state.exam.voice = !state.exam.voice;
+      save(); render();
+      if (state.exam.voice && !speak("Voice alerts on")) toast("This device has no speech engine available");
+      break;
+    }
+    case "exam-test": {
+      if (!state.exam.voice){ toast("Turn voice alerts on first"); break; }
+      if (!speak("5 minutes remaining")) toast("This device has no speech engine available");
+      break;
+    }
+
+    case "cd-add": {
+      openCdModal(null);
+      break;
+    }
+    case "cd-edit": {
+      openCdModal(el.dataset.id);
+      break;
+    }
+    case "cd-bell": {
+      const cd = state.countdowns.find(c => c.id === el.dataset.id);
+      if (cd) toggleReminder(cd);
+      break;
+    }
+    case "pick-exam": {
+      const k = el.dataset.day, ex = findExam(el.dataset.id);
+      if (ex){
+        const n = (state.tasks[k] = state.tasks[k] || []).filter(t => t.examId === ex.id).length;
+        state.tasks[k].push({ id:uid(), examId:ex.id, auto:false, done:false, title:ex.name, sub:`Session ${n+1}` });
+        save(); renderPlannerLive();
+      }
+      break;
+    }
+  }
+});
+
+function openPicker(dayKey){
+  const slot = document.querySelector(`[data-slot="${dayKey}"]`);
+  if (!slot) return;
+  if (slot.firstChild){ slot.innerHTML = ""; return; }
+  document.querySelectorAll("[data-slot]").forEach(s => { s.innerHTML = ""; });
+  slot.innerHTML = state.exams.length
+    ? `<div class="picker">` + state.exams.map(e =>
+        `<button class="picker-opt" style="--c:${examColor(e)}" data-act="pick-exam" data-id="${e.id}" data-day="${dayKey}">${esc(e.name)}</button>`
+      ).join("") + `</div>`
+    : `<div class="picker"><div class="picker-none">Add an exam first.</div></div>`;
+}
+
+view.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-act]");
+  if (!f) return;
+  e.preventDefault();
+
+  if (f.dataset.act === "add-habit"){
+    const input = document.getElementById("newHabit");
+    const raw = input.value.trim();
+    if (!raw) return;
+    const m = raw.match(/^(\p{Extended_Pictographic}(?:️)?(?:‍\p{Extended_Pictographic}(?:️)?)*)\s*(.*)$/u);
+    const ic   = m ? m[1] : "✅";
+    const name = (m ? m[2] : raw).trim() || raw;
+    state.habits.push({ id:"h_"+uid(), icon:ic, name });
+    input.value = "";
+    save(); render();
+    document.getElementById("newHabit")?.focus();
+  }
+
+  if (f.dataset.act === "exam-custom"){
+    const title = document.getElementById("exTitle").value.trim() || "Custom Exam";
+    const mins  = clamp(Math.round(Number(document.getElementById("exMins").value) || 0), 1, 600);
+    const e = state.exam;
+    e.title = title;
+    e.durationMs = mins * 60000;
+    e.status = "idle"; e.elapsedMs = 0; e.runStartEpoch = null; e.fired = {};
+    perfAnchor = null;
+    stopExamTick();
+    save(); render();
+    toast(`${title} set to ${mins} minutes`);
+    return;
+  }
+
+  if (f.dataset.act === "add-exam"){
+    const name = document.getElementById("exName").value.trim();
+    if (!name) return;
+    state.exams.push({
+      id: "e_" + uid(),
+      name,
+      units: clamp(Number(document.getElementById("exUnits").value) || 1, 1, 60),
+      date: document.getElementById("exDate").value || "",
+      priority: document.getElementById("exPri").value
+    });
+    document.getElementById("exName").value = "";
+    save(); render();
+  }
+});
+
+/* ── Drag & drop between days ── */
+let dragging = null;
+view.addEventListener("dragstart", e => {
+  const card = e.target.closest(".task");
+  if (!card) return;
+  dragging = { id: card.dataset.task, from: card.dataset.day };
+  card.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+  try { e.dataTransfer.setData("text/plain", card.dataset.task); } catch {}
+});
+view.addEventListener("dragend", e => {
+  e.target.closest(".task")?.classList.remove("dragging");
+  document.querySelectorAll(".day-col.drag-over").forEach(c => c.classList.remove("drag-over"));
+  dragging = null;
+});
+view.addEventListener("dragover", e => {
+  const col = e.target.closest("[data-drop]");
+  if (!col || !dragging) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  document.querySelectorAll(".day-col.drag-over").forEach(c => { if (c !== col) c.classList.remove("drag-over"); });
+  col.classList.add("drag-over");
+});
+view.addEventListener("drop", e => {
+  const col = e.target.closest("[data-drop]");
+  if (!col || !dragging) return;
+  e.preventDefault();
+  const to = col.dataset.drop, { id, from } = dragging;
+  if (to !== from){
+    const list = state.tasks[from] || [];
+    const i = list.findIndex(t => t.id === id);
+    if (i > -1){
+      const [t] = list.splice(i, 1);
+      if (!list.length) delete state.tasks[from];
+      (state.tasks[to] = state.tasks[to] || []).push(t);
+      save();
+    }
+  }
+  dragging = null;
+  renderPlannerLive();
+});
+
+/* ═══════════════════════════  BOOT  ═══════════════════════════ */
+document.getElementById("brandMark").innerHTML = icon("target", 20, 1.9);
+gear.innerHTML = icon("gear", 18, 1.9);
+document.querySelectorAll("[data-icon]").forEach(el => { el.innerHTML = icon(el.dataset.icon, 15, 2); });
+document.getElementById("footStamp").textContent =
+  memoryOnly ? "Storage unavailable — this session only"
+  : DESKTOP  ? `Desktop app v${window.desktop.appVersion}`
+             : `Last opened ${MONTHS[today.getMonth()].slice(0,3)} ${today.getDate()}, ${today.getFullYear()}`;
+
+if (DESKTOP){
+  window.desktop.openAtLogin.get()
+    .then(v => {
+      desktopLogin = !!v;
+      if (drawer.classList.contains("open")) renderSettings();
+    })
+    .catch(() => {});
+}
+
+reanchorExam();   // rebuild the perf clock from the stored wall-clock anchor
+applySettings();
+render();
+if (needsNormalise) save();   // write back the backfilled fields
+
+})();
+</script>
+
+</body>
+</html>
