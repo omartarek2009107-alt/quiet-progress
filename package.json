@@ -28,5 +28,8 @@
   "allowScripts": {
     "electron@43.2.0": true,
     "electron-winstaller@5.4.4": true
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
   }
 }
