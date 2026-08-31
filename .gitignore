@@ -3,6 +3,8 @@ out/
 npm-debug.log*
 .DS_Store
 
-# Separate project that happens to live in this folder — not part of
+# Separate projects that happen to live in this folder — not part of
 # Quiet Progress and deliberately kept out of this repo.
 NetMonitor/
+OledGuard/
+ScreenTime/

@@ -27,6 +27,9 @@ module.exports = {
       // its source AND its node_modules get packaged, which took app.asar
       // from 0.4 MB to 850 MB and the installer from 134 MB to 440 MB.
       /^\/NetMonitor($|\/)/,
+      // Likewise a standalone C# utility that shares this folder; it has its
+      // own build output and is nothing to do with the tracker.
+      /^\/OledGuard($|\/)/,
       /\.ps1$/,
       /^\/README/,
       /^\/forge\.config\.js$/,

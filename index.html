@@ -780,6 +780,119 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   .h-exam{ grid-template-columns:96px 1fr 40px; }
 }
 
+/* ────────────────────────  ASSIGNMENTS  ────────────────────────
+   Uses the live theme tokens rather than fixed hexes so this tab
+   follows whatever background and accent are selected. */
+.as-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+.as-head .panel-title{ margin-right:auto; }
+.as-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+.as-summary{
+  display:grid; gap:12px; margin-bottom:16px;
+  grid-template-columns:repeat(auto-fit, minmax(190px,1fr));
+}
+.as-stat{
+  padding:15px 17px; border-radius:14px;
+  background:var(--panel); border:1px solid var(--line);
+  border-left:3px solid var(--c, var(--accent));
+}
+.as-stat b{
+  display:block; font-family:var(--font-num); font-size:29px; font-weight:700;
+  line-height:1; letter-spacing:-.02em; color:var(--c, var(--accent));
+}
+.as-stat span{
+  display:block; margin-top:6px; font-family:var(--font-num); font-size:9.5px;
+  letter-spacing:.15em; text-transform:uppercase; color:var(--text-faint);
+}
+.as-stat small{ display:block; margin-top:4px; font-size:11.5px; color:var(--text-dim); }
+
+.as-filters{
+  display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;
+  padding:13px 15px; border-radius:12px; margin-bottom:16px;
+  background:var(--panel); border:1px solid var(--line);
+}
+.as-filters .field{ flex:1 1 175px; gap:5px; min-width:0; }
+.as-filters select{
+  width:100%; padding:8px 11px; border-radius:8px; font-size:13px;
+  background:var(--ground-2); border:1px solid var(--line);
+}
+.as-filters select:focus{ border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none; }
+.as-count{ font-family:var(--font-num); font-size:10.5px; color:var(--text-faint); letter-spacing:.08em; }
+
+.as-list{ display:flex; flex-direction:column; gap:11px; }
+.as-card{
+  display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:start;
+  padding:15px 17px; border-radius:14px;
+  background:var(--panel); border:1px solid var(--line);
+  border-left:3px solid var(--c, var(--accent));
+  transition:border-color .16s, transform .12s;
+}
+.as-card:hover{ transform:translateY(-1px); }
+.as-card.is-done{ opacity:.6; }
+.as-card.is-done .as-title{ text-decoration:line-through; color:var(--text-faint); }
+
+.as-check{
+  width:21px; height:21px; margin-top:2px; border-radius:6px; flex:none;
+  border:1.6px solid var(--line); display:grid; place-items:center; background:transparent;
+  transition:background .15s, border-color .15s;
+}
+.as-check svg{ opacity:0; color:#06111b; }
+.as-card.is-done .as-check{ background:var(--accent); border-color:var(--accent); }
+.as-card.is-done .as-check svg{ opacity:1; }
+.as-check:hover{ border-color:var(--accent); }
+
+.as-body{ min-width:0; display:flex; flex-direction:column; gap:5px; }
+.as-title{ font-size:15.5px; font-weight:650; letter-spacing:-.01em; color:var(--text); }
+.as-class{ font-size:12px; color:var(--text-dim); }
+.as-due{ font-family:var(--font-num); font-size:11.5px; color:var(--text-faint); letter-spacing:.03em; }
+.as-due.soon{ color:var(--amber); }
+.as-due.overdue{ color:var(--coral); }
+.as-desc{
+  font-size:12.5px; color:var(--text-faint); line-height:1.5; margin-top:2px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.as-side{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex:none; }
+.as-badge{
+  font-family:var(--font-num); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+  padding:4px 9px; border-radius:99px; white-space:nowrap;
+  color:var(--c); background:color-mix(in srgb, var(--c) 13%, transparent);
+  border:1px solid color-mix(in srgb, var(--c) 32%, transparent);
+}
+.as-tools{ display:flex; gap:2px; }
+
+.as-empty{
+  display:grid; place-items:center; gap:9px; text-align:center;
+  padding:52px 22px; border-radius:16px;
+  border:1px dashed var(--line); background:rgba(255,255,255,.015); color:var(--text-faint);
+}
+.as-empty b{ color:var(--text); font-size:15px; }
+.as-empty span{ font-size:12.5px; max-width:340px; }
+
+.as-modal{ width:min(500px, calc(100% - 32px)); }
+.as-modal form{ display:flex; flex-direction:column; gap:13px; padding:16px 20px 20px; }
+.as-modal textarea, .im-modal textarea{
+  width:100%; padding:10px 12px; border-radius:8px; resize:vertical;
+  background:var(--ground-2); border:1px solid var(--line);
+  font-family:inherit; font-size:13px; line-height:1.5; color:var(--text);
+}
+.im-modal textarea{ font-family:var(--font-num); font-size:11.5px; }
+.as-modal textarea:focus, .im-modal textarea:focus{
+  border-color:color-mix(in srgb, var(--accent) 50%, transparent); outline:none;
+}
+.im-modal{ width:min(560px, calc(100% - 32px)); }
+.im-modal .body{ display:flex; flex-direction:column; gap:13px; padding:4px 20px 20px; }
+.im-report{
+  padding:11px 13px; border-radius:9px; font-size:12.5px; line-height:1.55;
+  background:var(--ground-2); border:1px solid var(--line); color:var(--text-dim);
+}
+.im-report b{ color:var(--text); }
+.im-report.bad{ border-color:color-mix(in srgb, var(--coral) 45%, transparent); color:var(--coral); }
+
+@media (max-width:620px){
+  .as-card{ grid-template-columns:auto 1fr; }
+  .as-side{ grid-column:1 / -1; flex-direction:row; align-items:center; justify-content:space-between; }
+}
+
 /* ─────────────────────────────  PRO  ────────────────────────────── */
 /* Deliberately quiet: a header affordance, not a call to action competing
    with the app's own content. It gains colour only on hover. */
@@ -1304,6 +1417,7 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
       <button class="tab" role="tab" data-tab="planner" aria-selected="false"><span data-icon="calendar"></span> Exam Planner</button>
       <button class="tab" role="tab" data-tab="countdown" aria-selected="false"><span data-icon="timer"></span> Countdown Timers</button>
       <button class="tab" role="tab" data-tab="exam" aria-selected="false"><span data-icon="siren"></span> Live Exam Mode</button>
+      <button class="tab" role="tab" data-tab="assign" aria-selected="false"><span data-icon="clipboard"></span> Assignments</button>
     </nav>
     <span id="proSlot"></span>
     <button class="gear" id="gearBtn" aria-label="Open settings" aria-expanded="false"></button>
@@ -1407,6 +1521,77 @@ tr.totals .sticky-l, tr.totals .sticky-r{ background:var(--ground-2); }
   </div>
 </div>
 
+<div class="modal-scrim" id="asScrim"></div>
+<div class="modal as-modal" id="asModal" role="dialog" aria-modal="true" aria-labelledby="asTitle" aria-hidden="true">
+  <div class="modal-head">
+    <span class="panel-title" id="asTitle">New assignment</span>
+    <button class="icon-btn" id="asClose" type="button" aria-label="Close"></button>
+  </div>
+  <form id="asForm" novalidate>
+    <input type="hidden" id="asId"/>
+    <div class="field">
+      <label for="asTitleIn">Title</label>
+      <input id="asTitleIn" type="text" maxlength="120" required placeholder="Forensics" autocomplete="off"/>
+    </div>
+    <div class="field">
+      <label for="asClass">Class / subject</label>
+      <input id="asClass" type="text" maxlength="120" list="asClassList" placeholder="A2 Oct 26 - U4 - Ahmed Amr Bio Team" autocomplete="off"/>
+      <datalist id="asClassList"></datalist>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="asDate">Due date</label>
+        <input id="asDate" type="date"/>
+      </div>
+      <div class="field">
+        <label for="asTime">Due time</label>
+        <input id="asTime" type="time" value="23:59"/>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="asPriority">Priority</label>
+        <select id="asPriority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="asLink">Classroom link</label>
+        <input id="asLink" type="url" placeholder="https://classroom.google.com/..." autocomplete="off"/>
+      </div>
+    </div>
+    <div class="field">
+      <label for="asDesc">Instructions</label>
+      <textarea id="asDesc" rows="3" maxlength="1200" placeholder="What needs doing"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" type="submit">Save assignment</button>
+      <button class="minibtn danger" type="button" id="asDelete" hidden>Delete</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-scrim" id="imScrim"></div>
+<div class="modal im-modal" id="imModal" role="dialog" aria-modal="true" aria-labelledby="imTitle" aria-hidden="true">
+  <div class="modal-head">
+    <span class="panel-title" id="imTitle">Import assignments</span>
+    <button class="icon-btn" id="imClose" type="button" aria-label="Close"></button>
+  </div>
+  <div class="body">
+    <p class="pro-lede">Paste JSON exported from Google Classroom or produced by your own
+      automation. An array of assignments, or an object with a <code>courseWork</code> array,
+      are both accepted.</p>
+    <textarea id="imText" rows="9" spellcheck="false" placeholder='[{"title":"Forensics","className":"A2 Oct 26 - U4","dueDate":{"year":2026,"month":8,"day":12},"alternateLink":"https://classroom.google.com/..."}]'></textarea>
+    <div id="imReport" class="im-report" hidden></div>
+    <div class="modal-actions">
+      <button class="btn" type="button" id="imRun">Preview import</button>
+      <button class="minibtn" type="button" id="imConfirm" hidden>Add them</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1451,6 +1636,10 @@ const P = {
   volumeOff:'<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
   siren:    '<path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/>',
   home:     '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  clipboard:'<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  external: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  inbox:    '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+
   clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   arrow:    '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
   lock:     '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
@@ -3336,6 +3525,358 @@ function viewHome(){
   </div>`;
 }
 
+/* ═══════════════════════  TAB 5 — ASSIGNMENTS  ═══════════════════════
+   Stored under its own localStorage key, separate from the main tracker
+   blob, so external automation can drop a JSON array straight in. */
+const ASSIGN_KEY = "quiet_progress_assignments";
+const pad2 = n => String(n).padStart(2, "0");
+
+/** Accepts our own shape and Google Classroom courseWork objects. */
+function normaliseAssignment(raw){
+  if (!raw || typeof raw !== "object") return null;
+  const title = String(raw.title || raw.name || raw.assignment || "").trim();
+  if (!title) return null;
+
+  // Classroom sends dueDate {year,month,day} and dueTime {hours,minutes}.
+  let due = raw.due || raw.dueDate || raw.due_at || raw.dueAt || "";
+  if (due && typeof due === "object"){
+    if (!due.year) due = "";
+    else {
+      const t = raw.dueTime || due.time || null;
+      if (t && (t.hours != null || t.minutes != null)){
+        // Classroom reports dueTime in UTC, so convert to local before storing.
+        const utc = new Date(Date.UTC(due.year, (due.month || 1) - 1, due.day || 1,
+                                      t.hours || 0, t.minutes || 0));
+        due = utc.getFullYear() + "-" + pad2(utc.getMonth() + 1) + "-" + pad2(utc.getDate()) +
+              "T" + pad2(utc.getHours()) + ":" + pad2(utc.getMinutes());
+      } else {
+        // A date with no time means end of that day, not midnight at its start —
+        // otherwise it reads as overdue for the whole day it is actually due.
+        due = due.year + "-" + pad2(due.month || 1) + "-" + pad2(due.day || 1) + "T23:59";
+      }
+    }
+  }
+  due = String(due || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(due)) due += "T23:59";
+
+  const done = !!(raw.done || raw.completed ||
+    /^(turned_?in|submitted|returned)$/i.test(String(raw.state || raw.status || "")));
+
+  return {
+    id: String(raw.id || "as_" + uid()),
+    title,
+    className: String(raw.className || raw.courseName || raw.course || raw.class || raw.subject || "").trim(),
+    due,
+    description: String(raw.description || raw.instructions || raw.text || "").trim(),
+    link: String(raw.link || raw.alternateLink || raw.url || "").trim(),
+    priority: /^(high|medium|low)$/.test(raw.priority) ? raw.priority : "medium",
+    done,
+    source: raw.source || "manual"
+  };
+}
+
+let assignments = (function loadAssignments(){
+  try {
+    const raw = localStorage.getItem(ASSIGN_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.map(normaliseAssignment).filter(Boolean) : [];
+  } catch { return []; }
+})();
+
+function saveAssignments(){
+  try { localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }
+  catch { /* storage unavailable; the session still works in memory */ }
+}
+
+const asDueDate = a => { const d = a.due ? new Date(a.due) : null; return d && !isNaN(d) ? d : null; };
+
+/** pending | submitted | late — derived, so it can never contradict the data. */
+function asStatus(a){
+  if (a.done) return "submitted";
+  const d = asDueDate(a);
+  return (d && d.getTime() < Date.now()) ? "late" : "pending";
+}
+const AS_STATUS = {
+  pending:   { label:"Pending",   c:"var(--accent-2)" },
+  submitted: { label:"Turned in", c:"var(--teal)"     },
+  late:      { label:"Late",      c:"var(--coral)"    }
+};
+const AS_PRI = { high:3, medium:2, low:1 };
+
+function asDueLabel(a){
+  const d = asDueDate(a);
+  if (!d) return { text:"No due date", cls:"" };
+  const diff = d.getTime() - Date.now();
+  const when = d.toLocaleDateString(undefined,{ weekday:"short", day:"numeric", month:"short" }) +
+               " · " + d.toLocaleTimeString(undefined,{ hour:"2-digit", minute:"2-digit", hour12:false });
+  if (a.done) return { text: when, cls:"" };
+  if (diff < 0)         return { text: when + " · overdue", cls:"overdue" };
+  if (diff < 48*3600e3) return { text: when + " · in " + Math.max(1, Math.round(diff/3600e3)) + "h", cls:"soon" };
+  return { text: when, cls:"" };
+}
+
+/* Filter + sort state is UI-only, so it lives here rather than in the save file. */
+let asFilter = { cls:"all", status:"all", sort:"due" };
+
+function asVisible(){
+  const byDue = (x,y) => {
+    const dx = asDueDate(x), dy = asDueDate(y);
+    if (!dx && !dy) return 0;
+    if (!dx) return 1;            // undated sinks to the bottom
+    if (!dy) return -1;
+    return dx - dy;
+  };
+  const list = assignments.filter(a =>
+    (asFilter.cls === "all" || a.className === asFilter.cls) &&
+    (asFilter.status === "all" || asStatus(a) === asFilter.status));
+
+  if (asFilter.sort === "due")      list.sort(byDue);
+  if (asFilter.sort === "priority") list.sort((x,y) => (AS_PRI[y.priority]||2) - (AS_PRI[x.priority]||2) || byDue(x,y));
+  if (asFilter.sort === "title")    list.sort((x,y) => x.title.localeCompare(y.title));
+  return list;
+}
+
+function asStats(){
+  const active = assignments.filter(a => !a.done);
+  const soon = active.filter(a => {
+    const d = asDueDate(a);
+    if (!d) return false;
+    const diff = d.getTime() - Date.now();
+    return diff >= 0 && diff <= 48*3600e3;
+  });
+  return { active: active.length, soon: soon.length,
+           done: assignments.filter(a => a.done).length,
+           overdue: active.filter(a => asStatus(a) === "late").length };
+}
+
+const asClasses = () => [...new Set(assignments.map(a => a.className).filter(Boolean))].sort();
+
+function viewAssign(){
+  const st = asStats();
+  const list = asVisible();
+
+  const stat = (c, value, label, sub) =>
+    `<div class="as-stat" style="--c:${c}"><b class="num">${value}</b><span>${label}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</div>`;
+
+  const opts = (sel, items) => items.map(([v,l]) =>
+    `<option value="${esc(v)}"${v === sel ? " selected" : ""}>${esc(l)}</option>`).join("");
+
+  const cards = list.length ? list.map(a => {
+    const s = asStatus(a), meta = AS_STATUS[s], due = asDueLabel(a);
+    return `<article class="as-card${a.done ? " is-done" : ""}" style="--c:${meta.c}" data-as="${a.id}">
+      <button class="as-check" data-act="as-toggle" data-id="${a.id}" role="checkbox"
+        aria-checked="${a.done}" aria-label="Mark ${esc(a.title)} complete">${icon("check",13,3.2)}</button>
+      <div class="as-body">
+        <div class="as-title">${esc(a.title)}</div>
+        ${a.className ? `<div class="as-class">${esc(a.className)}</div>` : ""}
+        <div class="as-due ${due.cls}">${esc(due.text)}</div>
+        ${a.description ? `<div class="as-desc">${esc(a.description)}</div>` : ""}
+      </div>
+      <div class="as-side">
+        <span class="as-badge" style="--c:${meta.c}">${meta.label}</span>
+        <div class="as-tools">
+          ${a.link ? `<a class="icon-btn" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer"
+             title="Open in Classroom" aria-label="Open ${esc(a.title)} in Google Classroom">${icon("external",15,1.9)}</a>` : ""}
+          <button class="icon-btn" data-act="as-edit" data-id="${a.id}" title="Edit" aria-label="Edit ${esc(a.title)}">${icon("edit",15,1.9)}</button>
+        </div>
+      </div>
+    </article>`;
+  }).join("") : `<div class="as-empty">${icon("clipboard",30,1.4)}
+      <b>${assignments.length ? "Nothing matches these filters" : "No assignments yet"}</b>
+      <span>${assignments.length
+        ? "Try a different class or status."
+        : "Add one by hand, or paste a JSON export from Google Classroom."}</span>
+      <div class="as-actions" style="margin-top:6px">
+        <button class="btn" data-act="as-add">${icon("plus",15,2.2)} Add Assignment</button>
+        <button class="minibtn" data-act="as-import">${icon("inbox",13,1.9)} Import / Sync</button>
+      </div>
+    </div>`;
+
+  return `
+  <div class="as-head">
+    <span class="panel-title">Assignments</span>
+    <span class="eyebrow">${assignments.length} tracked</span>
+    <div class="as-actions">
+      <button class="minibtn" data-act="as-import">${icon("inbox",13,1.9)} Import / Sync</button>
+      <button class="btn" data-act="as-add">${icon("plus",15,2.2)} Add Assignment</button>
+    </div>
+  </div>
+
+  <div class="as-summary">
+    ${stat("var(--accent-2)", st.active, "Active", st.overdue ? st.overdue + " overdue" : "nothing overdue")}
+    ${stat("var(--amber)",    st.soon,   "Due in 48h", st.soon ? "needs attention" : "clear for now")}
+    ${stat("var(--teal)",     st.done,   "Turned in", assignments.length ? Math.round(st.done/assignments.length*100) + "% of all" : "")}
+  </div>
+
+  <div class="as-filters">
+    <div class="field">
+      <label for="asFilterClass">Class / subject</label>
+      <select id="asFilterClass" data-asf="cls">
+        ${opts(asFilter.cls, [["all","All classes"], ...asClasses().map(c => [c,c])])}
+      </select>
+    </div>
+    <div class="field">
+      <label for="asFilterStatus">Status</label>
+      <select id="asFilterStatus" data-asf="status">
+        ${opts(asFilter.status, [["all","All statuses"],["pending","Pending / Due"],["submitted","Submitted / Turned in"],["late","Late"]])}
+      </select>
+    </div>
+    <div class="field">
+      <label for="asFilterSort">Sort by</label>
+      <select id="asFilterSort" data-asf="sort">
+        ${opts(asFilter.sort, [["due","Due date"],["priority","Priority"],["title","Title"]])}
+      </select>
+    </div>
+    <span class="as-count">${list.length} shown</span>
+  </div>
+
+  <div class="as-list">${cards}</div>`;
+}
+
+/* ── Add / edit dialog ── */
+const asModal = document.getElementById("asModal");
+const asScrim = document.getElementById("asScrim");
+
+function openAsModal(id){
+  const a = id ? assignments.find(x => x.id === id) : null;
+  document.getElementById("asTitle").textContent = a ? "Edit assignment" : "New assignment";
+  document.getElementById("asId").value       = a ? a.id : "";
+  document.getElementById("asTitleIn").value  = a ? a.title : "";
+  document.getElementById("asClass").value    = a ? a.className : "";
+  document.getElementById("asDate").value     = a && a.due ? a.due.slice(0,10) : "";
+  document.getElementById("asTime").value     = a && a.due && a.due.length > 10 ? a.due.slice(11,16) : "23:59";
+  document.getElementById("asPriority").value = a ? a.priority : "medium";
+  document.getElementById("asLink").value     = a ? a.link : "";
+  document.getElementById("asDesc").value     = a ? a.description : "";
+  document.getElementById("asDelete").hidden  = !a;
+  document.getElementById("asClassList").innerHTML =
+    asClasses().map(c => `<option value="${esc(c)}"></option>`).join("");
+  asModal.classList.add("open"); asScrim.classList.add("open");
+  asModal.setAttribute("aria-hidden","false");
+  setTimeout(() => document.getElementById("asTitleIn").focus(), 30);
+}
+function closeAsModal(){
+  asModal.classList.remove("open"); asScrim.classList.remove("open");
+  asModal.setAttribute("aria-hidden","true");
+}
+asScrim.addEventListener("click", closeAsModal);
+document.getElementById("asClose").addEventListener("click", closeAsModal);
+document.getElementById("asClose").innerHTML = icon("x",16,2.2);
+
+document.getElementById("asDelete").addEventListener("click", () => {
+  const id = document.getElementById("asId").value;
+  const a = assignments.find(x => x.id === id);
+  if (!a || !confirm("Delete “" + a.title + "”?")) return;
+  assignments = assignments.filter(x => x.id !== id);
+  saveAssignments(); closeAsModal(); render(); toast("Assignment deleted");
+});
+
+document.getElementById("asForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const title = document.getElementById("asTitleIn").value.trim();
+  if (!title){ toast("Give the assignment a title"); return; }
+  const date = document.getElementById("asDate").value;
+  const time = document.getElementById("asTime").value || "23:59";
+  const rec = {
+    title,
+    className:   document.getElementById("asClass").value.trim(),
+    due:         date ? date + "T" + time : "",
+    priority:    document.getElementById("asPriority").value,
+    link:        document.getElementById("asLink").value.trim(),
+    description: document.getElementById("asDesc").value.trim()
+  };
+  const id = document.getElementById("asId").value;
+  if (id){
+    const a = assignments.find(x => x.id === id);
+    if (a) Object.assign(a, rec);
+  } else {
+    assignments.push(normaliseAssignment({ ...rec, id:"as_" + uid(), source:"manual" }));
+  }
+  saveAssignments(); closeAsModal(); render();
+  toast(id ? "Assignment updated" : "Assignment added");
+});
+
+/* ── Import dialog ── */
+const imModal = document.getElementById("imModal");
+const imScrim = document.getElementById("imScrim");
+let imPending = null;
+
+function openImModal(){
+  document.getElementById("imText").value = "";
+  document.getElementById("imReport").hidden = true;
+  document.getElementById("imConfirm").hidden = true;
+  imPending = null;
+  imModal.classList.add("open"); imScrim.classList.add("open");
+  imModal.setAttribute("aria-hidden","false");
+  setTimeout(() => document.getElementById("imText").focus(), 30);
+}
+function closeImModal(){
+  imModal.classList.remove("open"); imScrim.classList.remove("open");
+  imModal.setAttribute("aria-hidden","true");
+}
+imScrim.addEventListener("click", closeImModal);
+document.getElementById("imClose").addEventListener("click", closeImModal);
+document.getElementById("imClose").innerHTML = icon("x",16,2.2);
+
+const asKey = a => (a.title + "|" + a.className + "|" + a.due).toLowerCase();
+
+document.getElementById("imRun").addEventListener("click", () => {
+  const report = document.getElementById("imReport");
+  const raw = document.getElementById("imText").value.trim();
+  report.hidden = false; report.classList.remove("bad");
+  document.getElementById("imConfirm").hidden = true;
+  imPending = null;
+
+  if (!raw){ report.classList.add("bad"); report.textContent = "Paste some JSON first."; return; }
+
+  let data;
+  try { data = JSON.parse(raw); }
+  catch (err){ report.classList.add("bad"); report.textContent = "That is not valid JSON: " + err.message; return; }
+
+  const arr = Array.isArray(data) ? data
+            : Array.isArray(data.courseWork)  ? data.courseWork
+            : Array.isArray(data.assignments) ? data.assignments
+            : Array.isArray(data.items)       ? data.items : null;
+  if (!arr){
+    report.classList.add("bad");
+    report.textContent = "Expected an array, or an object containing courseWork / assignments / items.";
+    return;
+  }
+
+  const parsed = arr.map(normaliseAssignment).filter(Boolean).map(a => ({ ...a, source:"import" }));
+  const seen = new Set(assignments.map(asKey));
+  const fresh = [], dupes = [];
+  parsed.forEach(a => { if (seen.has(asKey(a))) dupes.push(a); else { seen.add(asKey(a)); fresh.push(a); } });
+
+  if (!fresh.length && !dupes.length){
+    report.classList.add("bad");
+    report.textContent = "Found " + arr.length + " entries but none had a usable title.";
+    return;
+  }
+
+  imPending = fresh;
+  const names = fresh.slice(0,4).map(a => esc(a.title)).join(", ");
+  report.innerHTML = "Ready to add <b>" + fresh.length + "</b> assignment" + (fresh.length===1?"":"s") +
+    (dupes.length ? ", skipping <b>" + dupes.length + "</b> already present" : "") + "." +
+    (fresh.length ? '<br><span style="opacity:.75">' + names + (fresh.length>4 ? " and " + (fresh.length-4) + " more" : "") + "</span>" : "");
+  document.getElementById("imConfirm").hidden = !fresh.length;
+});
+
+document.getElementById("imConfirm").addEventListener("click", () => {
+  if (!imPending || !imPending.length) return;
+  assignments = assignments.concat(imPending);
+  saveAssignments();
+  const n = imPending.length;
+  closeImModal(); render();
+  toast("Imported " + n + " assignment" + (n===1?"":"s"));
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (asModal.classList.contains("open")) closeAsModal();
+  if (imModal.classList.contains("open")) closeImModal();
+});
+
 /* ═══════════════════════════  RENDER  ═══════════════════════════ */
 const view = document.getElementById("view");
 
@@ -3354,6 +3895,7 @@ function render(){
                  : state.ui.tab === "habits"    ? viewHabits()
                  : state.ui.tab === "countdown" ? viewCountdown()
                  : state.ui.tab === "exam"      ? viewExam()
+                 : state.ui.tab === "assign"    ? viewAssign()
                  :                                viewPlanner();
 
   Object.entries(drafts).forEach(([id, v]) => {
@@ -4311,6 +4853,19 @@ view.addEventListener("click", e => {
       setTimeout(() => document.getElementById("exName")?.focus(), 40);
       break;
 
+    case "as-add":    openAsModal(null); break;
+    case "as-edit":   openAsModal(el.dataset.id); break;
+    case "as-import": openImModal(); break;
+    case "as-toggle": {
+      const a = assignments.find(x => x.id === el.dataset.id);
+      if (a){
+        a.done = !a.done;
+        saveAssignments();
+        render();
+      }
+      break;
+    }
+
     case "exam-preset": examApplyPreset(el.dataset.id); break;
     case "exam-start":  examStart(); break;
     case "exam-pause":  examPause(); break;
@@ -4373,6 +4928,15 @@ function openPicker(dayKey){
       ).join("") + `</div>`
     : `<div class="picker"><div class="picker-none">Add an exam first.</div></div>`;
 }
+
+/* Assignments filter + sort dropdowns. render() deliberately does not restore
+   <select> values, so the re-rendered markup reflects asFilter directly. */
+view.addEventListener("change", e => {
+  const sel = e.target.closest("[data-asf]");
+  if (!sel) return;
+  asFilter[sel.dataset.asf] = sel.value;
+  render();
+});
 
 view.addEventListener("submit", e => {
   const f = e.target.closest("form[data-act]");
